@@ -184,13 +184,41 @@ Both `generate/route.ts` and `rewrite-day/route.ts` were updated to:
 
 ---
 
-## What's Next — Phase 5 (Weather)
+## Phase 5 — Weather Integration ✅
 
-1. Create `lib/weather/open-meteo.ts` — `getForecast(lat, lon, dates[])` (no API key required)
-2. `GET /api/weather/check/:tripId` — fetch forecast for each day, compare to trip dates, generate `weather_alerts` rows when conditions degrade
-3. `POST /api/weather/dismiss/:alertId` — mark alert as dismissed
-4. Surface alerts on `/trips/[id]` (banner) and `/trips/[id]/day/[dayNumber]` (inline chip)
-5. The `rewrite_day_weather_context` setting in `ai_settings` already controls how weather context is injected into the AI rewrite prompt — no hardcoded text
+### New Files
+| File | Purpose |
+|---|---|
+| `apps/web/lib/weather/open-meteo.ts` | Open-Meteo client — `getForecast()`, `classifyAlert()`, `wmoLabel()` |
+| `apps/web/lib/weather/check.ts` | Shared `runWeatherCheck(tripId, userId)` — used by server components AND API route |
+| `apps/web/lib/db/weather.ts` | DB helpers — `getActiveAlertsByTrip`, `getAlertCountsByUser`, `createWeatherAlert` (idempotent), `dismissAlert` |
+| `apps/web/app/api/weather/check/[tripId]/route.ts` | `GET` — thin wrapper around `runWeatherCheck` |
+| `apps/web/app/api/weather/dismiss/[alertId]/route.ts` | `POST` — ownership-checked alert dismissal |
+| `apps/web/components/weather/WeatherAlertBanner.tsx` | Client banner — "Rewrite Day" + "Dismiss" with loading states |
+| `apps/web/components/weather/RefreshWeatherButton.tsx` | Client manual re-check button |
+
+### Modified Files
+- **`TripCard.tsx`** — `alertCount?: number` prop; amber `⚠ N` badge when `alertCount > 0`
+- **`trips/[id]/page.tsx`** — auto `runWeatherCheck()` on every page load via `Promise.all`; `<WeatherAlertBanner>` stack above itinerary; `<RefreshWeatherButton>` in header
+- **`dashboard/page.tsx`** — `getAlertCountsByUser()` for badge counts; `Promise.allSettled` background check for upcoming trips (within 16 days)
+
+### Key Decisions
+- **No API key** — Open-Meteo is free; `next: { revalidate: 3600 }` for 1-hour edge cache
+- **Auto-check on every page load** — `runWeatherCheck` imported directly by server components; no HTTP self-call
+- **Idempotent alerts** — `createWeatherAlert` skips insert if a non-dismissed alert already exists for that `dayId`
+- **Out-of-range handling** — past trips or > 16-day window return `stale: true`; no errors, no phantom alerts
+- **No schema migrations** — `weather_alerts` table and `itinerary_days.weatherCode/weatherLabel/weatherAlerted` columns existed from Phase 2
+- **Dashboard resilience** — `Promise.allSettled` so one Open-Meteo failure never breaks the page render
+
+---
+
+## What's Next — Phase 6 (Place Cards)
+
+1. `POST /api/places/generate-cards` — call OpenTripMap (or Overpass) for POIs near each day's destination; insert into `place_cards` table
+2. `POST /api/places/flag/:id` — user flags a place as "Worth It" or "Skip It"
+3. Worth It / Skip It card UI on `/trips/[id]` — swipeable or grid cards with rating badge
+4. Admin moderation queue at `/admin/places` — review flagged cards, approve or remove
+5. `place_cards` table already migrated (Phase 2)
 
 ---
 
@@ -201,7 +229,7 @@ Both `generate/route.ts` and `rewrite-day/route.ts` were updated to:
 | GitHub Commits (≥15) | 0–15 | ~15+ commits |
 | Commit Days (≥3 days) | 0–15 | 2+ days |
 | Architecture | 0–5 | ✅ Turborepo monorepo |
-| Backend API | 0–7 | ✅ 15 routes live (auth × 3, trips × 4, itinerary × 3, admin × 5) |
+| Backend API | 0–7 | ✅ 17 routes live (auth × 3, trips × 4, itinerary × 3, admin × 5, weather × 2) |
 | Database (≥4 tables) | 0–8 | ✅ 9 tables migrated |
 | Auth & Security | 0–5 | ✅ Auth.js v5, bcrypt, JWT, Zod, ownership checks, admin role guard |
 | Web Screens (≥5) | 0–10 | 7/9+ (dashboard, trips/new, trips/:id, trips/:id/day/:dayNumber, register, login, admin, admin/ai) |
@@ -209,7 +237,8 @@ Both `generate/route.ts` and `rewrite-day/route.ts` were updated to:
 | Mobile App (≥3 screens) | 0–9 | ⬜ Not started |
 | Deployment | 0–10 | ✅ Vercel live |
 | Documentation | 0–6 | ✅ AGENTS.md, CODING_PLAN.md, PROGRESS.md |
-| **Estimated so far** | **~52** | |
+| Weather Alerts & Auto-check | — | ✅ Phase 5 complete (Open-Meteo, auto-check, banners, dismiss) |
+| **Estimated so far** | **~57** | |
 
 ---
 
