@@ -1,0 +1,1443 @@
+# RouteCrafted — Technical Implementation Plan
+
+**Stack:** Next.js 15 · React · TypeScript · Tailwind CSS · Drizzle ORM · Neon PostgreSQL · Expo (React Native) · Auth.js · Gemini 2.0 Flash · Open-Meteo · OpenTripMap · Cloudflare R2 · Resend · Vercel
+
+---
+
+## Table of Contents
+
+1. [Project Description](#1-project-description)  
+2. [System Architecture](#2-system-architecture)  
+3. [Monorepo Structure](#3-monorepo-structure)  
+4. [Database Schema](#4-database-schema)  
+5. [API Design](#5-api-design)  
+6. [Web App Screens](#6-web-app-screens)  
+7. [Mobile App Screens](#7-mobile-app-screens)  
+8. [AI Features — Implementation Detail](#8-ai-features--implementation-detail)  
+9. [User Stories](#9-user-stories)  
+10. [Authentication & Authorization](#10-authentication--authorization)  
+11. [Admin Panel](#11-admin-panel)  
+12. [Integrations Wiring](#12-integrations-wiring)  
+13. [Implementation Phases](#13-implementation-phases)  
+14. [Environment Variables](#14-environment-variables)  
+15. [AGENTS.md Template](#15-agentsmd-template)
+
+---
+
+## 1\. Project Description
+
+RouteCrafted is a multi-platform full-stack travel itinerary builder that uses AI to generate practical, day-by-day travel plans. A traveler enters a destination, travel dates, budget range, travel style, and group type. The AI builds a structured itinerary, complete with morning/afternoon/evening activity blocks, meal suggestions, estimated costs, and movement notes. When the weather forecast changes for a saved trip, RouteCrafted detects the disruption and offers a rewritten plan for affected days. For every place, attraction, restaurant, or activity in the plan, the app generates a short "worth it / skip it" card that gives a quick verdict, key reasons, expected cost, and best traveler fit — designed for fast mobile reading while on the ground.
+
+RouteCrafted is implemented as a **Node.js monorepo** containing:
+
+- A **Next.js 15** app that serves both the backend REST API and the web client.  
+- An **Expo** app that provides the React Native mobile client.
+
+The project fulfils all capstone requirements: minimum 5 web screens, minimum 3 mobile screens, minimum 4 database tables, JWT authentication, user and admin roles, live deployment, GitHub commit history, and comprehensive documentation.
+
+---
+
+## 2\. System Architecture
+
+┌─────────────────────────────────────────────────────────────┐
+
+│                        CLIENT LAYER                         │
+
+│                                                             │
+
+│  ┌──────────────────────────┐  ┌─────────────────────────┐  │
+
+│  │   Next.js Web App        │  │   Expo Mobile App       │  │
+
+│  │   (React \+ TypeScript)   │  │   (React Native)        │  │
+
+│  │   Tailwind CSS           │  │   NativeWind / StyleSh  │  │
+
+│  └────────────┬─────────────┘  └──────────┬──────────────┘  │
+
+└───────────────┼──────────────────────────-┼─────────────────┘
+
+                │  HTTPS / REST API          │  HTTPS / REST API
+
+┌───────────────▼────────────────────────────▼─────────────────┐
+
+│                     BACKEND LAYER                            │
+
+│                  Next.js 15 App Router                       │
+
+│                                                              │
+
+│  /app/api/\*   — REST API route handlers                      │
+
+│  /app/(web)/\* — Server Components \+ Client Components        │
+
+│                                                              │
+
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐   │
+
+│  │  Auth.js │ │  Drizzle │ │  AI lib  │ │  Integrations│   │
+
+│  │  (JWT)   │ │  ORM     │ │  (Gemini)│ │  (Weather,   │   │
+
+│  └──────────┘ └──────────┘ └──────────┘ │  Places, R2, │   │
+
+│                                          │  Resend)     │   │
+
+│                                          └──────────────┘   │
+
+└──────────────────────────┬───────────────────────────────────┘
+
+                           │
+
+┌──────────────────────────▼───────────────────────────────────┐
+
+│                      DATA LAYER                              │
+
+│                                                              │
+
+│  ┌──────────────────────┐  ┌───────────────────────────┐    │
+
+│  │  Neon PostgreSQL      │  │  Cloudflare R2            │    │
+
+│  │  (via Drizzle ORM)   │  │  (user file uploads)      │    │
+
+│  └──────────────────────┘  └───────────────────────────┘    │
+
+└──────────────────────────────────────────────────────────────┘
+
+External services:
+
+  • Gemini 2.0 Flash   — itinerary generation, rewrites, summaries
+
+  • Open-Meteo         — 7-day weather forecasts, no key required
+
+  • OpenTripMap        — POI data for place cards
+
+  • Nominatim          — server-side geocoding
+
+  • Mapbox             — client-side destination autocomplete
+
+  • Resend             — transactional email
+
+  • Expo Push Service  — mobile push notifications
+
+**Communication rules:**
+
+- The web client uses Server Components for data fetching and Server Actions for mutations wherever possible, reducing client-side fetch boilerplate.  
+- The mobile app communicates exclusively via the REST API at `/api/*` using JWT bearer tokens in the `Authorization` header.  
+- All environment secrets live server-side. No API keys are exposed to the browser or the mobile app.
+
+---
+
+## 3\. Monorepo Structure
+
+RouteCrafted/
+
+├── apps/
+
+│   ├── web/                          \# Next.js 15 app (web \+ API)
+
+│   │   ├── app/
+
+│   │   │   ├── (auth)/               \# register, login pages
+
+│   │   │   ├── (dashboard)/          \# traveler dashboard, trips
+
+│   │   │   ├── (admin)/              \# admin panel
+
+│   │   │   ├── api/
+
+│   │   │   │   ├── auth/\[...nextauth\]/route.ts
+
+│   │   │   │   ├── trips/            \# CRUD endpoints
+
+│   │   │   │   ├── itinerary/        \# generation, rewrite
+
+│   │   │   │   ├── places/           \# card generation, POI
+
+│   │   │   │   ├── weather/          \# forecast check
+
+│   │   │   │   ├── upload/           \# R2 file upload
+
+│   │   │   │   └── admin/            \# admin-only endpoints
+
+│   │   │   └── layout.tsx
+
+│   │   ├── components/               \# React UI components
+
+│   │   ├── lib/
+
+│   │   │   ├── db/
+
+│   │   │   │   ├── schema.ts         \# Drizzle table definitions
+
+│   │   │   │   ├── relations.ts
+
+│   │   │   │   ├── index.ts          \# DB client
+
+│   │   │   │   └── queries/          \# typed query helpers
+
+│   │   │   ├── ai/
+
+│   │   │   │   ├── gemini.ts         \# Gemini client wrapper
+
+│   │   │   │   ├── prompts.ts        \# prompt templates
+
+│   │   │   │   └── parsers.ts        \# JSON response parsers
+
+│   │   │   ├── weather/
+
+│   │   │   │   └── open-meteo.ts
+
+│   │   │   ├── places/
+
+│   │   │   │   └── opentripmap.ts
+
+│   │   │   ├── geocoding/
+
+│   │   │   │   └── nominatim.ts
+
+│   │   │   ├── storage/
+
+│   │   │   │   └── r2.ts
+
+│   │   │   ├── email/
+
+│   │   │   │   └── resend.ts
+
+│   │   │   └── notifications/
+
+│   │   │       └── expo-push.ts
+
+│   │   ├── drizzle/                  \# auto-generated migration SQL files
+
+│   │   ├── drizzle.config.ts
+
+│   │   ├── next.config.ts
+
+│   │   ├── tailwind.config.ts
+
+│   │   └── package.json
+
+│   │
+
+│   └── mobile/                       \# Expo React Native app
+
+│       ├── app/
+
+│       │   ├── (auth)/               \# login, register screens
+
+│       │   ├── (tabs)/               \# tab navigator screens
+
+│       │   │   ├── index.tsx         \# My Trips
+
+│       │   │   ├── explore.tsx       \# Explore destinations
+
+│       │   │   └── profile.tsx       \# Profile
+
+│       │   ├── trip/\[id\]/            \# Trip detail \+ day plan
+
+│       │   ├── card/\[id\]/            \# Place card detail
+
+│       │   └── \_layout.tsx
+
+│       ├── components/
+
+│       ├── lib/
+
+│       │   ├── api.ts                \# typed fetch wrapper for /api/\*
+
+│       │   ├── auth.ts               \# JWT storage \+ refresh
+
+│       │   └── notifications.ts      \# Expo push token registration
+
+│       ├── app.json
+
+│       └── package.json
+
+│
+
+├── packages/
+
+│   └── shared/                       \# shared TypeScript types
+
+│       ├── types/
+
+│       │   ├── trip.ts
+
+│       │   ├── itinerary.ts
+
+│       │   └── place-card.ts
+
+│       └── package.json
+
+│
+
+├── turbo.json                        \# Turborepo pipeline config
+
+├── package.json                      \# root workspace config
+
+├── .env.local                        \# secrets (git-ignored)
+
+├── AGENTS.md                         \# AI dev agent instructions
+
+└── README.md
+
+**Root `package.json` (npm workspaces):**
+
+{
+
+  "name": "RouteCrafted",
+
+  "private": true,
+
+  "workspaces": \["apps/\*", "packages/\*"\],
+
+  "scripts": {
+
+    "dev:web": "npm run dev \--workspace=apps/web",
+
+    "dev:mobile": "npm run start \--workspace=apps/mobile",
+
+    "db:generate": "npm run db:generate \--workspace=apps/web",
+
+    "db:migrate": "npm run db:migrate \--workspace=apps/web"
+
+  }
+
+}
+
+---
+
+## 4\. Database Schema
+
+The database must contain **at least 4 tables**. RouteCrafted's schema uses 7 tables to cover all features cleanly.
+
+### 4.1 Table: `users`
+
+Stores registered travelers and admins.
+
+export const users \= pgTable('users', {
+
+  id:           uuid('id').defaultRandom().primaryKey(),
+
+  email:        varchar('email', { length: 320 }).unique().notNull(),
+
+  passwordHash: varchar('password\_hash', { length: 256 }).notNull(),
+
+  name:         varchar('name', { length: 120 }).notNull(),
+
+  role:         varchar('role', { length: 20 }).default('traveler').notNull(), // 'traveler' | 'admin'
+
+  avatarUrl:    varchar('avatar\_url', { length: 500 }),
+
+  expoPushToken: varchar('expo\_push\_token', { length: 200 }),
+
+  createdAt:    timestamp('created\_at').defaultNow().notNull(),
+
+  updatedAt:    timestamp('updated\_at').defaultNow().notNull(),
+
+});
+
+### 4.2 Table: `trips`
+
+One row per trip a user creates.
+
+export const trips \= pgTable('trips', {
+
+  id:            uuid('id').defaultRandom().primaryKey(),
+
+  userId:        uuid('user\_id').references(() \=\> users.id, { onDelete: 'cascade' }).notNull(),
+
+  destination:   varchar('destination', { length: 200 }).notNull(),
+
+  country:       varchar('country', { length: 100 }),
+
+  latitude:      real('latitude'),
+
+  longitude:     real('longitude'),
+
+  startDate:     date('start\_date').notNull(),
+
+  endDate:       date('end\_date').notNull(),
+
+  budgetRange:   varchar('budget\_range', { length: 20 }).notNull(), // 'budget' | 'moderate' | 'luxury'
+
+  travelStyle:   varchar('travel\_style', { length: 40 }).notNull(), // 'cultural' | 'adventure' | 'relaxation' | 'foodie' | 'nature'
+
+  groupType:     varchar('group\_type', { length: 30 }).notNull(),   // 'solo' | 'couple' | 'friends' | 'family'
+
+  pacing:        varchar('pacing', { length: 20 }).default('balanced'), // 'relaxed' | 'balanced' | 'packed'
+
+  status:        varchar('status', { length: 20 }).default('draft'),    // 'draft' | 'active' | 'past'
+
+  coverImageUrl: varchar('cover\_image\_url', { length: 500 }),
+
+  createdAt:     timestamp('created\_at').defaultNow().notNull(),
+
+  updatedAt:     timestamp('updated\_at').defaultNow().notNull(),
+
+});
+
+### 4.3 Table: `itinerary_days`
+
+One row per day of a trip. Stores AI-generated day metadata and weather snapshot.
+
+export const itineraryDays \= pgTable('itinerary\_days', {
+
+  id:               uuid('id').defaultRandom().primaryKey(),
+
+  tripId:           uuid('trip\_id').references(() \=\> trips.id, { onDelete: 'cascade' }).notNull(),
+
+  dayNumber:        integer('day\_number').notNull(),    // 1, 2, 3...
+
+  date:             date('date').notNull(),
+
+  theme:            varchar('theme', { length: 120 }),  // e.g. "Old Town & History"
+
+  summary:          text('summary'),
+
+  weatherCode:      integer('weather\_code'),            // WMO code from Open-Meteo
+
+  weatherLabel:     varchar('weather\_label', { length: 60 }),
+
+  weatherAlerted:   boolean('weather\_alerted').default(false),
+
+  rewrittenAt:      timestamp('rewritten\_at'),
+
+  createdAt:        timestamp('created\_at').defaultNow().notNull(),
+
+});
+
+### 4.4 Table: `itinerary_items`
+
+Individual activities, meals, and transitions within a day.
+
+export const itineraryItems \= pgTable('itinerary\_items', {
+
+  id:            uuid('id').defaultRandom().primaryKey(),
+
+  dayId:         uuid('day\_id').references(() \=\> itineraryDays.id, { onDelete: 'cascade' }).notNull(),
+
+  position:      integer('position').notNull(),
+
+  timeBlock:     varchar('time\_block', { length: 20 }).notNull(), // 'morning' | 'afternoon' | 'evening'
+
+  type:          varchar('type', { length: 30 }).notNull(),        // 'activity' | 'meal' | 'transport' | 'accommodation'
+
+  title:         varchar('title', { length: 200 }).notNull(),
+
+  description:   text('description'),
+
+  location:      varchar('location', { length: 200 }),
+
+  durationMins:  integer('duration\_mins'),
+
+  estimatedCost: varchar('estimated\_cost', { length: 40 }),
+
+  isOptional:    boolean('is\_optional').default(false),
+
+  placeCardId:   uuid('place\_card\_id').references(() \=\> placeCards.id),
+
+  createdAt:     timestamp('created\_at').defaultNow().notNull(),
+
+});
+
+### 4.5 Table: `place_cards`
+
+Short "worth it / skip it" verdicts for places in the itinerary.
+
+export const placeCards \= pgTable('place\_cards', {
+
+  id:              uuid('id').defaultRandom().primaryKey(),
+
+  tripId:          uuid('trip\_id').references(() \=\> trips.id, { onDelete: 'cascade' }).notNull(),
+
+  name:            varchar('name', { length: 200 }).notNull(),
+
+  category:        varchar('category', { length: 60 }),           // 'attraction' | 'restaurant' | 'neighborhood' | 'activity'
+
+  verdict:         varchar('verdict', { length: 10 }).notNull(),  // 'worth\_it' | 'skip\_it' | 'depends'
+
+  summary:         text('summary').notNull(),
+
+  worthItReasons:  jsonb('worth\_it\_reasons').$type\<string\[\]\>(),
+
+  skipItReasons:   jsonb('skip\_it\_reasons').$type\<string\[\]\>(),
+
+  bestFor:         varchar('best\_for', { length: 120 }),
+
+  costLevel:       varchar('cost\_level', { length: 20 }),         // 'free' | 'budget' | 'moderate' | 'splurge'
+
+  timeNeeded:      varchar('time\_needed', { length: 60 }),
+
+  latitude:        real('latitude'),
+
+  longitude:       real('longitude'),
+
+  imageUrl:        varchar('image\_url', { length: 500 }),
+
+  flagged:         boolean('flagged').default(false),
+
+  flagReason:      text('flag\_reason'),
+
+  createdAt:       timestamp('created\_at').defaultNow().notNull(),
+
+});
+
+### 4.6 Table: `weather_alerts`
+
+Records forecast-change events that triggered a rewrite suggestion.
+
+export const weatherAlerts \= pgTable('weather\_alerts', {
+
+  id:              uuid('id').defaultRandom().primaryKey(),
+
+  tripId:          uuid('trip\_id').references(() \=\> trips.id, { onDelete: 'cascade' }).notNull(),
+
+  dayId:           uuid('day\_id').references(() \=\> itineraryDays.id, { onDelete: 'cascade' }).notNull(),
+
+  alertType:       varchar('alert\_type', { length: 40 }).notNull(), // 'rain' | 'storm' | 'extreme\_heat' | 'snow'
+
+  forecastCode:    integer('forecast\_code').notNull(),
+
+  alertedAt:       timestamp('alerted\_at').defaultNow().notNull(),
+
+  dismissed:       boolean('dismissed').default(false),
+
+  rewriteAccepted: boolean('rewrite\_accepted').default(false),
+
+});
+
+### 4.7 Table: `admin_flags`
+
+Content moderation records raised by users or auto-detected.
+
+export const adminFlags \= pgTable('admin\_flags', {
+
+  id:           uuid('id').defaultRandom().primaryKey(),
+
+  placeCardId:  uuid('place\_card\_id').references(() \=\> placeCards.id).notNull(),
+
+  raisedBy:     uuid('raised\_by').references(() \=\> users.id),
+
+  reason:       text('reason'),
+
+  status:       varchar('status', { length: 20 }).default('open'), // 'open' | 'resolved' | 'dismissed'
+
+  resolvedBy:   uuid('resolved\_by').references(() \=\> users.id),
+
+  createdAt:    timestamp('created\_at').defaultNow().notNull(),
+
+  resolvedAt:   timestamp('resolved\_at'),
+
+});
+
+### 4.8 Entity Relationship Summary
+
+users ──\< trips ──\< itinerary\_days ──\< itinerary\_items
+
+                 ──\< place\_cards
+
+                 ──\< weather\_alerts ──\> itinerary\_days
+
+                 ──\< admin\_flags ──\> place\_cards
+
+All foreign keys use `onDelete: 'cascade'` so deleting a trip removes all related rows automatically.
+
+---
+
+## 5\. API Design
+
+All routes are under `/api/`. Protected routes require a JWT bearer token. Admin routes additionally check `role === 'admin'` server-side.
+
+### Authentication
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| POST | `/api/auth/register` | Public | Register a new user; send welcome email |
+| POST | `/api/auth/[...nextauth]` | Public | Auth.js handler (login, logout, session) |
+| GET | `/api/auth/me` | JWT | Return current user profile |
+
+### Trips
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| GET | `/api/trips` | JWT | List all trips for the authenticated user |
+| POST | `/api/trips` | JWT | Create a new trip (geocodes destination) |
+| GET | `/api/trips/:id` | JWT (owner) | Get trip with days, items, and cards |
+| PATCH | `/api/trips/:id` | JWT (owner) | Update trip metadata |
+| DELETE | `/api/trips/:id` | JWT (owner) | Delete trip and all related data |
+
+### Itinerary
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| POST | `/api/itinerary/generate` | JWT | Generate full day-by-day itinerary for a trip |
+| POST | `/api/itinerary/rewrite-day` | JWT | Rewrite a single day (weather or manual) |
+| PATCH | `/api/itinerary/items/:id` | JWT | Edit a single itinerary item |
+| DELETE | `/api/itinerary/items/:id` | JWT | Delete an itinerary item |
+
+### Place Cards
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| POST | `/api/places/generate-cards` | JWT | Generate "worth it / skip it" cards for all places in a trip |
+| GET | `/api/places/cards/:tripId` | JWT | List all place cards for a trip |
+| GET | `/api/places/cards/item/:id` | JWT | Get single place card |
+| POST | `/api/places/flag/:id` | JWT | Flag a card as inaccurate |
+
+### Weather
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| GET | `/api/weather/check/:tripId` | JWT | Check forecast for all trip days; return alerts if changed |
+| POST | `/api/weather/dismiss/:alertId` | JWT | Dismiss a weather alert without rewriting |
+
+### Uploads
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| POST | `/api/upload/avatar` | JWT | Upload profile photo to Cloudflare R2 |
+| POST | `/api/upload/trip-cover` | JWT | Upload trip cover image to R2 |
+
+### Admin
+
+| Method | Route | Auth | Description |
+| :---- | :---- | :---- | :---- |
+| GET | `/api/admin/users` | Admin | List all users with pagination |
+| PATCH | `/api/admin/users/:id` | Admin | Edit user role or suspend account |
+| GET | `/api/admin/flags` | Admin | List open content moderation flags |
+| PATCH | `/api/admin/flags/:id` | Admin | Resolve or dismiss a flag |
+| DELETE | `/api/admin/cards/:id` | Admin | Remove a flagged place card |
+| GET | `/api/admin/stats` | Admin | App usage statistics (trips, users, alerts) |
+
+---
+
+## 6\. Web App Screens
+
+The capstone requires **minimum 5 web screens**. RouteCrafted implements 9 distinct screens.
+
+### Screen 1 — Landing / Home Page (`/`)
+
+**Purpose:** Marketing, product explanation, sign-in/sign-up CTA.  
+**Content:** Hero section with value proposition, feature highlights (itinerary builder, weather replanning, place cards), sample mockup, register and login buttons.  
+**Components:** `HeroSection`, `FeatureGrid`, `SampleItineraryPreview`, `CallToActionBanner`.
+
+### Screen 2 — Register (`/register`)
+
+**Purpose:** User sign-up.  
+**Fields:** Name, email, password, confirm password.  
+**Behavior:** On success, send welcome email via Resend, redirect to dashboard.  
+**Components:** `RegisterForm`, `AuthLayout`.
+
+### Screen 3 — Login (`/login`)
+
+**Purpose:** Email \+ password sign-in.  
+**Behavior:** Auth.js credentials provider, JWT session, redirect to `/dashboard`.  
+**Components:** `LoginForm`, `AuthLayout`.
+
+### Screen 4 — Dashboard (`/dashboard`)
+
+**Purpose:** Overview of all user trips; entry point for creating a new trip.  
+**Content:** Active trips (upcoming, in-progress), past trips, weather alert banners for upcoming trips with alert state, "Create new trip" button.  
+**Components:** `TripCard`, `WeatherAlertBanner`, `EmptyTripsState`, `DashboardHeader`.
+
+### Screen 5 — Create Trip (`/trips/new`)
+
+**Purpose:** Multi-step form to enter trip parameters and trigger AI generation.  
+**Steps:**
+
+1. Destination search (Mapbox autocomplete)  
+2. Dates (date range picker)  
+3. Budget range \+ travel style \+ group type \+ pacing  
+4. Review summary → "Build my itinerary" button **Behavior:** On submit, POST to `/api/trips`, then POST to `/api/itinerary/generate`. Show streaming progress indicator while AI generates.  
+   **Components:** `TripWizard`, `DestinationSearchInput`, `DateRangePicker`, `TravelStyleSelector`, `TripReviewCard`, `GeneratingSpinner`.
+
+### Screen 6 — Trip Detail / Itinerary (`/trips/:id`)
+
+**Purpose:** Full day-by-day view of the generated itinerary.  
+**Content:** Trip header (destination, dates, cover image), weather alert banner if active, day tabs or scroll sections, each day shows morning/afternoon/evening blocks, each item shows title, duration, cost estimate, optional badge, and link to place card.  
+**Actions:** Edit item, delete item, regenerate day, regenerate full trip.  
+**Components:** `TripHeader`, `WeatherAlertCard`, `DaySection`, `ItineraryItem`, `RegenerateButton`, `DayTabs`.
+
+### Screen 7 — Place Cards (`/trips/:id/cards`)
+
+**Purpose:** Scrollable grid of all "worth it / skip it" place cards for the trip.  
+**Content:** Filter by verdict (all / worth it / skip it / depends), filter by category; each card shows verdict badge, summary, reasons, cost level, time needed.  
+**Actions:** Flag card as inaccurate.  
+**Components:** `PlaceCardGrid`, `PlaceCard`, `VerdictBadge`, `CardFilterBar`.
+
+### Screen 8 — Profile (`/profile`)
+
+**Purpose:** Manage account info, avatar upload, notification preferences.  
+**Content:** Name/email edit, avatar upload (Cloudflare R2), password change, delete account.  
+**Components:** `ProfileForm`, `AvatarUploader`, `PasswordChangeForm`, `DangerZone`.
+
+### Screen 9 — Admin Panel (`/admin`)
+
+**Purpose:** Platform moderation for admin users. Redirects non-admins.  
+**Tabs:**
+
+- **Users** — paginated user table with role toggle and suspend action.  
+- **Flags** — list of open content flags with place card preview and resolve/dismiss actions.  
+- **Stats** — KPI cards: total users, trips created this week, weather alerts fired, flags resolved. **Components:** `AdminUserTable`, `FlagQueue`, `StatsGrid`, `AdminNav`.
+
+---
+
+## 7\. Mobile App Screens
+
+The capstone requires **minimum 3 mobile screens**. RouteCrafted's mobile app implements 7 screens organized in two navigators.
+
+### Navigator: Auth Stack
+
+**Screen M1 — Welcome / Login**  
+Destination: `app/(auth)/index.tsx`  
+Content: App logo, short tagline, "Sign in" and "Register" buttons. Clean full-screen layout. On login, store JWT in secure memory state and navigate to tabs.
+
+**Screen M2 — Register**  
+Destination: `app/(auth)/register.tsx`  
+Fields: Name, email, password. On success, navigate to tabs.
+
+### Navigator: Tab Bar (3 tabs)
+
+**Screen M3 — My Trips (Tab 1\)**  
+Destination: `app/(tabs)/index.tsx`  
+Content: Flat list of trip cards with destination name, date range, status pill. Weather alert badge on cards with upcoming alerts. Pull-to-refresh. "+" button opens create trip sheet.  
+Create trip sheet: simplified 3-step wizard (destination text, dates, style) — calls the same `/api/trips` \+ `/api/itinerary/generate` endpoints.
+
+**Screen M4 — Trip Day Plan (navigated from My Trips)**  
+Destination: `app/trip/[id]/index.tsx`  
+Content: Day selector at top, activity list for selected day (time block labels, item cards), weather alert banner if active for that day. Tap item opens place card.  
+Actions: Accept weather rewrite (calls `/api/itinerary/rewrite-day`).
+
+**Screen M5 — Place Card Detail (navigated from Day Plan)**  
+Destination: `app/card/[id]/index.tsx`  
+Content: Full place card — verdict badge, name, summary, "Worth it because" section, "Skip it if" section, cost level, time needed, best for label. Back navigation.
+
+**Screen M6 — Explore (Tab 2\)**  
+Destination: `app/(tabs)/explore.tsx`  
+Content: Searchable list of user's saved place cards across all trips. Filter by verdict or category. Useful for building a favorites reference.
+
+**Screen M7 — Profile (Tab 3\)**  
+Destination: `app/(tabs)/profile.tsx`  
+Content: Avatar, name, email, logout button, notification toggle (registers/deregisters Expo push token via `/api/auth/me` PATCH).
+
+---
+
+## 8\. AI Features — Implementation Detail
+
+### 8.1 Itinerary Generation
+
+**Trigger:** POST `/api/itinerary/generate` with `tripId`.
+
+**Steps:**
+
+1. Load trip from DB (destination, dates, budget, style, group type, pacing, lat/lon).  
+2. Fetch 7-day weather forecast from Open-Meteo for the trip coordinates.  
+3. Fetch top 30 POIs from OpenTripMap for the destination.  
+4. Build structured prompt (see below).  
+5. Send to Gemini 2.0 Flash with `responseMimeType: 'application/json'`.  
+6. Parse response, validate structure with Zod.  
+7. Insert `itinerary_days` and `itinerary_items` rows in a single DB transaction.
+
+**Prompt structure:**
+
+You are RouteCrafted, a precise travel itinerary assistant.
+
+Create a detailed day-by-day travel itinerary for:
+
+\- Destination: {destination}, {country}
+
+\- Dates: {startDate} to {endDate} ({numDays} days)
+
+\- Budget: {budgetRange}
+
+\- Travel style: {travelStyle}
+
+\- Group: {groupType}
+
+\- Pacing: {pacing}
+
+\- Weather forecast: {weatherSummary}
+
+\- Top POIs available: {poiList}
+
+Return a JSON object with this exact schema:
+
+{
+
+  "days": \[
+
+    {
+
+      "dayNumber": 1,
+
+      "date": "YYYY-MM-DD",
+
+      "theme": "string (max 60 chars)",
+
+      "summary": "string (1-2 sentences)",
+
+      "items": \[
+
+        {
+
+          "position": 1,
+
+          "timeBlock": "morning | afternoon | evening",
+
+          "type": "activity | meal | transport | accommodation",
+
+          "title": "string",
+
+          "description": "string (2-3 sentences)",
+
+          "location": "string",
+
+          "durationMins": number,
+
+          "estimatedCost": "string e.g. €0 | €5-10 | €25-40",
+
+          "isOptional": boolean
+
+        }
+
+      \]
+
+    }
+
+  \]
+
+}
+
+Rules:
+
+\- Group nearby places in the same time block to minimize travel.
+
+\- Flag items that depend on good weather as optional if rain is forecast.
+
+\- Keep estimated costs consistent with the budget range.
+
+\- Do not include fictional places.
+
+### 8.2 Weather-Aware Rewrite
+
+**Trigger:** POST `/api/itinerary/rewrite-day` with `dayId` and optional `weatherContext`.
+
+**Steps:**
+
+1. Load the full day with all its items from DB.  
+2. Fetch latest forecast from Open-Meteo for that specific date.  
+3. Build rewrite prompt that includes the existing plan and the weather condition.  
+4. Send to Gemini and parse response.  
+5. Replace existing `itinerary_items` for that day in a DB transaction.  
+6. Mark `itinerary_days.rewrittenAt` timestamp.
+
+**Key prompt instruction added for rewrites:**
+
+The original plan was designed for {originalWeatherLabel}.
+
+The updated forecast shows {newWeatherLabel} (WMO code {code}).
+
+Rewrite the day to be practical under this weather condition.
+
+Keep items that work in this weather unchanged.
+
+Replace outdoor activities that would be ruined by this weather with suitable indoor or covered alternatives.
+
+Do not change the JSON schema.
+
+### 8.3 Place Card Generation
+
+**Trigger:** POST `/api/places/generate-cards` with `tripId`.
+
+**Steps:**
+
+1. Collect all unique place names from `itinerary_items` for the trip.  
+2. Deduplicate. Enrich each with OpenTripMap data (category, Wikipedia excerpt if available).  
+3. For every 5 places, send a batch prompt to Gemini to generate cards.  
+4. Parse and insert `place_cards` rows.
+
+**Per-card prompt output schema:**
+
+{
+
+  "name": "string",
+
+  "category": "attraction | restaurant | neighborhood | activity",
+
+  "verdict": "worth\_it | skip\_it | depends",
+
+  "summary": "string (max 2 sentences)",
+
+  "worthItReasons": \["string", "string"\],
+
+  "skipItReasons": \["string", "string"\],
+
+  "bestFor": "string e.g. 'History lovers and architecture fans'",
+
+  "costLevel": "free | budget | moderate | splurge",
+
+  "timeNeeded": "string e.g. '1-2 hours'"
+
+}
+
+### 8.4 Weather Monitoring (Background Check)
+
+**Trigger:** GET `/api/weather/check/:tripId` called client-side when the user opens their dashboard or trip detail.
+
+**Steps:**
+
+1. Load all `itinerary_days` for the trip that are in the future.  
+2. Fetch current forecast for each date from Open-Meteo.  
+3. Compare new WMO weather code with stored `weatherCode`.  
+4. If significant change (clear→rain, rain→storm, etc.), create a `weather_alerts` row.  
+5. Set `itinerary_days.weatherAlerted = true`.  
+6. Optionally send Expo push notification to mobile.  
+7. Return alert list to client for banner display.
+
+---
+
+## 9\. User Stories
+
+### Traveler Role
+
+**Account**
+
+- **US-01:** As a traveler, I want to register with my email and password so that I can save and access my trips.  
+- **US-02:** As a traveler, I want to log in and out so that my trips remain private.  
+- **US-03:** As a traveler, I want to update my name, email, and avatar so that my profile reflects who I am.  
+- **US-04:** As a traveler, I want to reset my password so that I can recover access if I forget it.
+
+**Trip Creation**
+
+- **US-05:** As a traveler, I want to search for a destination with autocomplete so that I can quickly find and confirm where I'm going.  
+- **US-06:** As a traveler, I want to pick my travel dates, budget range, travel style, group type, and pacing so that the AI can generate a plan that suits me.  
+- **US-07:** As a traveler, I want to see a progress indicator while the AI builds my itinerary so that I know the system is working.  
+- **US-08:** As a traveler, I want to see a full day-by-day itinerary with morning, afternoon, and evening blocks immediately after generation.
+
+**Itinerary Management**
+
+- **US-09:** As a traveler, I want to regenerate a single day without changing the rest of the trip so that I can try alternatives without losing my full plan.  
+- **US-10:** As a traveler, I want to regenerate the full itinerary with the same trip parameters so that I can compare different versions.  
+- **US-11:** As a traveler, I want to edit the title, description, and duration of individual itinerary items so that I can personalize the plan.  
+- **US-12:** As a traveler, I want to delete itinerary items I don't want so that the plan reflects my real preferences.  
+- **US-13:** As a traveler, I want to see estimated cost per item so that I can plan my daily budget.
+
+**Weather Adaptation**
+
+- **US-14:** As a traveler, I want to be alerted when the forecast changes significantly for a day in my upcoming trip so that I can adapt my plan.  
+- **US-15:** As a traveler, I want to accept a weather-aware rewrite of a day so that my itinerary stays practical even when conditions change.  
+- **US-16:** As a traveler, I want to dismiss a weather alert without rewriting so that I can keep my original plan if I choose.  
+- **US-17:** As a traveler using the mobile app, I want to receive a push notification when a weather alert fires for my trip so that I'm informed even when the app is closed.
+
+**Place Cards**
+
+- **US-18:** As a traveler, I want to see a "worth it / skip it" card for every place in my itinerary so that I can decide quickly whether to include or skip something.  
+- **US-19:** As a traveler, I want to filter place cards by verdict (worth it / skip it / depends) so that I can scan only the recommendations that matter to me.  
+- **US-20:** As a traveler, I want to see each card's cost level and time needed so that I can make practical decisions on the go.  
+- **US-21:** As a traveler, I want to flag a place card as inaccurate so that the information can be reviewed and corrected.
+
+**Mobile**
+
+- **US-22:** As a mobile traveler, I want to view my day plan in a clean scrollable list so that I can follow it while on the ground.  
+- **US-23:** As a mobile traveler, I want to tap a place name to open its full summary card so that I can get context without opening a browser.  
+- **US-24:** As a mobile traveler, I want to browse all my saved place cards across trips from a single Explore tab so that I can reference favorites at any time.
+
+### Admin Role
+
+- **US-25:** As an admin, I want to view all registered users with their email, role, and join date so that I can monitor platform usage.  
+- **US-26:** As an admin, I want to change a user's role from traveler to admin so that I can delegate moderation responsibilities.  
+- **US-27:** As an admin, I want to suspend a user account so that I can address abuse without deleting their data.  
+- **US-28:** As an admin, I want to see all open content flags with the associated place card preview so that I can review reported inaccuracies.  
+- **US-29:** As an admin, I want to resolve or dismiss a flag and optionally delete the place card so that the platform maintains content quality.  
+- **US-30:** As an admin, I want to see aggregate usage statistics (total users, trips, alerts, flags) so that I can track platform health.
+
+---
+
+## 10\. Authentication & Authorization
+
+### Stack
+
+- **Auth.js v5 (NextAuth.js)** with the credentials provider.  
+- JWT session strategy — no database session storage.  
+- Token signed with `NEXTAUTH_SECRET` env variable.  
+- Token includes: `userId`, `email`, `role`, `name`.
+
+### Register Flow
+
+Client POST /api/auth/register
+
+  → validate input with Zod
+
+  → hash password with bcrypt (saltRounds: 12\)
+
+  → insert user row
+
+  → send welcome email via Resend
+
+  → return 201 \+ user object (no password)
+
+### Login Flow
+
+Client POST /api/auth/\[...nextauth\] (credentials)
+
+  → Auth.js calls authorize()
+
+  → query user by email
+
+  → bcrypt.compare(password, hash)
+
+  → if valid → return user object → Auth.js creates JWT
+
+  → set httpOnly cookie on web
+
+  → mobile: receive token in response body, store in memory
+
+### Mobile Authentication
+
+The Expo app stores the JWT in an in-memory variable (not AsyncStorage) to avoid persistence issues. Every API call adds `Authorization: Bearer <token>` header. Token expiry is set to 7 days; the app re-authenticates silently if a 401 is returned.
+
+### Authorization Guards
+
+**Web — Server Components:**
+
+import { auth } from "@/lib/auth";
+
+import { redirect } from "next/navigation";
+
+export default async function ProtectedPage() {
+
+  const session \= await auth();
+
+  if (\!session) redirect("/login");
+
+  if (session.user.role \!== "admin") redirect("/dashboard");
+
+  // ...
+
+}
+
+**API Routes:**
+
+export async function GET(req: Request) {
+
+  const session \= await auth();
+
+  if (\!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (session.user.role \!== "admin") return Response.json({ error: "Forbidden" }, { status: 403 });
+
+  // ...
+
+}
+
+---
+
+## 11\. Admin Panel
+
+The admin panel is a restricted section of the web app at `/admin/*`, accessible only to users with `role = 'admin'`.
+
+### Layout
+
+A persistent sidebar navigation with tabs: Dashboard Stats, Users, Content Flags.
+
+### Stats Tab
+
+Four KPI cards using live counts from the DB:
+
+- Total registered users  
+- Trips created in the last 7 days  
+- Active weather alerts  
+- Open content flags
+
+### Users Tab
+
+- Server-side paginated table (20 rows/page).  
+- Columns: Name, Email, Role (dropdown to change), Status, Joined date, Actions.  
+- Role toggle calls PATCH `/api/admin/users/:id` with `{ role }`.  
+- Suspend button calls PATCH `/api/admin/users/:id` with `{ suspended: true }`.
+
+### Content Flags Tab
+
+- List of open flags with place card name, category, verdict, flag reason, and date raised.  
+- "Resolve" button: mark flag resolved and optionally delete the card.  
+- "Dismiss" button: mark flag dismissed, card stays.
+
+---
+
+## 12\. Integrations Wiring
+
+### Gemini 2.0 Flash
+
+// lib/ai/gemini.ts
+
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+
+const client \= new GoogleGenerativeAI(process.env.GEMINI\_API\_KEY\!);
+
+export const gemini \= client.getGenerativeModel({
+
+  model: "gemini-2.0-flash",
+
+  generationConfig: { responseMimeType: "application/json" },
+
+});
+
+### Open-Meteo (no API key)
+
+// lib/weather/open-meteo.ts
+
+export async function getForecast(lat: number, lon: number, startDate: string, endDate: string) {
+
+  const url \= new URL("https://api.open-meteo.com/v1/forecast");
+
+  url.searchParams.set("latitude", String(lat));
+
+  url.searchParams.set("longitude", String(lon));
+
+  url.searchParams.set("daily", "weathercode,temperature\_2m\_max,temperature\_2m\_min,precipitation\_probability\_max");
+
+  url.searchParams.set("start\_date", startDate);
+
+  url.searchParams.set("end\_date", endDate);
+
+  url.searchParams.set("timezone", "auto");
+
+  const res \= await fetch(url.toString());
+
+  if (\!res.ok) throw new Error("Open-Meteo fetch failed");
+
+  return res.json();
+
+}
+
+### OpenTripMap (POI enrichment)
+
+// lib/places/opentripmap.ts
+
+export async function getPOIs(lat: number, lon: number, radius \= 5000, limit \= 30\) {
+
+  const base \= "https://api.opentripmap.com/0.1/en/places";
+
+  const res \= await fetch(
+
+    \`${base}/radius?radius=${radius}\&lon=${lon}\&lat=${lat}\&limit=${limit}\&format=json\&apikey=${process.env.OPENTRIPMAP\_KEY}\`
+
+  );
+
+  return res.json();
+
+}
+
+### Nominatim Geocoding
+
+// lib/geocoding/nominatim.ts
+
+export async function geocode(destination: string) {
+
+  const res \= await fetch(
+
+    \`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}\&format=json\&limit=1\`,
+
+    { headers: { "User-Agent": "RouteCrafted/1.0 contact@RouteCrafted.app" } }
+
+  );
+
+  const \[place\] \= await res.json();
+
+  return { lat: parseFloat(place.lat), lon: parseFloat(place.lon), displayName: place.display\_name };
+
+}
+
+### Cloudflare R2
+
+// lib/storage/r2.ts
+
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+export const r2 \= new S3Client({
+
+  region: "auto",
+
+  endpoint: \`https://${process.env.R2\_ACCOUNT\_ID}.r2.cloudflarestorage.com\`,
+
+  credentials: {
+
+    accessKeyId: process.env.R2\_ACCESS\_KEY\_ID\!,
+
+    secretAccessKey: process.env.R2\_SECRET\_ACCESS\_KEY\!,
+
+  },
+
+});
+
+export async function uploadFile(key: string, body: Buffer, contentType: string) {
+
+  await r2.send(new PutObjectCommand({ Bucket: process.env.R2\_BUCKET\_NAME\!, Key: key, Body: body, ContentType: contentType }));
+
+  return \`https://${process.env.R2\_PUBLIC\_DOMAIN}/${key}\`;
+
+}
+
+### Resend Email
+
+// lib/email/resend.ts
+
+import { Resend } from "resend";
+
+export const resend \= new Resend(process.env.RESEND\_API\_KEY);
+
+export async function sendWelcomeEmail(to: string, name: string) {
+
+  await resend.emails.send({
+
+    from: "RouteCrafted \<noreply@RouteCrafted.app\>",
+
+    to,
+
+    subject: "Welcome to RouteCrafted 🗺️",
+
+    html: \`\<h1\>Hi ${name},\</h1\>\<p\>Your account is ready. Start planning your first trip\!\</p\>\`,
+
+  });
+
+}
+
+### Expo Push Notifications
+
+// lib/notifications/expo-push.ts
+
+export async function sendWeatherAlert(expoPushToken: string, destination: string, day: string) {
+
+  await fetch("https://exp.host/--/api/v2/push/send", {
+
+    method: "POST",
+
+    headers: { "Content-Type": "application/json" },
+
+    body: JSON.stringify({
+
+      to: expoPushToken,
+
+      title: \`⛈ Weather alert — ${destination}\`,
+
+      body: \`Forecast changed for ${day}. Tap to review your updated plan.\`,
+
+      data: { type: "weather\_alert" },
+
+    }),
+
+  });
+
+}
+
+---
+
+## 13\. Implementation Phases
+
+Phase structure aligns with the capstone requirement of commits spread across multiple days.
+
+### Phase 1 — Foundation (Days 1–3)
+
+- [ ] Initialize monorepo with npm workspaces and Turborepo.  
+- [ ] Create Next.js app with App Router, TypeScript, Tailwind.  
+- [ ] Create Expo app with Expo Router and TypeScript.  
+- [ ] Set up shared `packages/shared` with TypeScript types.  
+- [ ] Configure Neon PostgreSQL connection and Drizzle ORM.  
+- [ ] Write and run initial DB migration (all 7 tables).  
+- [ ] Implement Auth.js with credentials provider, register \+ login endpoints.  
+- [ ] Commit initial working auth flow.
+
+### Phase 2 — Core Web Screens (Days 4–7)
+
+- [ ] Build Landing page (Screen 1).  
+- [ ] Build Register and Login screens (Screens 2–3).  
+- [ ] Build Dashboard (Screen 4).  
+- [ ] Build Create Trip wizard with Mapbox autocomplete (Screen 5).  
+- [ ] Implement `/api/trips` CRUD endpoints.  
+- [ ] Integrate Nominatim geocoding on trip creation.  
+- [ ] Commit each screen separately.
+
+### Phase 3 — AI Itinerary Generation (Days 8–10)
+
+- [ ] Write Gemini client wrapper and prompt templates.  
+- [ ] Implement `/api/itinerary/generate` endpoint with Zod validation.  
+- [ ] Integrate Open-Meteo weather \+ OpenTripMap POIs into the generation prompt.  
+- [ ] Build Trip Detail / Itinerary screen (Screen 6).  
+- [ ] Implement item edit and delete.  
+- [ ] Test full generation flow end-to-end.  
+- [ ] Commit generation feature.
+
+### Phase 4 — Place Cards & Weather (Days 11–13)
+
+- [ ] Implement `/api/places/generate-cards` endpoint.  
+- [ ] Build Place Cards screen (Screen 7).  
+- [ ] Implement weather monitoring: `/api/weather/check`.  
+- [ ] Add weather alert banners to dashboard and trip detail.  
+- [ ] Implement day rewrite: `/api/itinerary/rewrite-day`.  
+- [ ] Add alert accept/dismiss flow.  
+- [ ] Commit cards \+ weather features.
+
+### Phase 5 — Mobile App (Days 14–17)
+
+- [ ] Implement Auth screens M1–M2 in Expo.  
+- [ ] Implement My Trips tab M3 with trip list and create sheet.  
+- [ ] Implement Trip Day Plan screen M4.  
+- [ ] Implement Place Card Detail screen M5.  
+- [ ] Implement Explore and Profile tabs M6–M7.  
+- [ ] Register Expo push token on login, store in `users.expoPushToken`.  
+- [ ] Test on Android emulator and/or physical device.  
+- [ ] Commit mobile app.
+
+### Phase 6 — Admin Panel & Storage (Days 18–19)
+
+- [ ] Implement admin-only route guards.  
+- [ ] Build admin panel with Stats, Users, Flags tabs (Screen 9).  
+- [ ] Implement admin API endpoints.  
+- [ ] Integrate Cloudflare R2 for avatar and trip cover uploads (Screen 8 — Profile).  
+- [ ] Commit admin panel \+ storage.
+
+### Phase 7 — Polish, Email, Push & Deployment (Days 20–22)
+
+- [ ] Integrate Resend for welcome and alert emails.  
+- [ ] Finalize push notification delivery on weather alerts.  
+- [ ] Write README.md (project description, architecture, DB schema, setup guide, folder guide).  
+- [ ] Write AGENTS.md.  
+- [ ] Deploy to Vercel. Set all env vars in Vercel dashboard.  
+- [ ] Run DB migrations on Neon production.  
+- [ ] Verify live deployment end-to-end.  
+- [ ] Final commit and tag.
+
+---
+
+## 14\. Environment Variables
+
+File: `.env.local` (git-ignored).
+
+\# ── Database ──────────────────────────────────────────────
+
+DATABASE\_URL=postgresql://user:password@host.neon.tech/neondb?sslmode=require
+
+\# ── Auth ──────────────────────────────────────────────────
+
+NEXTAUTH\_SECRET=generate-with-openssl-rand-base64-32
+
+NEXTAUTH\_URL=http://localhost:3000
+
+\# ── AI ────────────────────────────────────────────────────
+
+GEMINI\_API\_KEY=AIza...
+
+\# ── Geocoding ─────────────────────────────────────────────
+
+NEXT\_PUBLIC\_MAPBOX\_TOKEN=pk.eyJ1...    \# public — safe for browser
+
+OPENTRIPMAP\_KEY=5ae2e3...
+
+\# ── Storage ───────────────────────────────────────────────
+
+R2\_ACCOUNT\_ID=abc123
+
+R2\_ACCESS\_KEY\_ID=key\_id
+
+R2\_SECRET\_ACCESS\_KEY=secret
+
+R2\_BUCKET\_NAME=RouteCrafted-uploads
+
+R2\_PUBLIC\_DOMAIN=pub.RouteCrafted.app    \# R2 custom public domain
+
+\# ── Email ─────────────────────────────────────────────────
+
+RESEND\_API\_KEY=re\_...
+
+\# ── Open-Meteo ────────────────────────────────────────────
+
+\# No key required
+
+**Vercel setup:** Run `vercel env pull .env.local` after linking the project, or add each var via the Vercel dashboard → Settings → Environment Variables.
+
+---
+
+## 15\. AGENTS.md Template
+
+\# RouteCrafted — AI Dev Agent Instructions
+
+\#\# Project Overview
+
+RouteCrafted is a multi-platform full-stack travel itinerary builder.
+
+Tech stack: Next.js 15, React, TypeScript, Tailwind CSS, Drizzle ORM,
+
+Neon PostgreSQL, Expo (React Native), Auth.js, Gemini 2.0 Flash, Vercel.
+
+\#\# Monorepo Structure
+
+\- \`apps/web/\` — Next.js 15 app: backend API \+ web client
+
+\- \`apps/mobile/\` — Expo React Native app
+
+\- \`packages/shared/\` — shared TypeScript types
+
+\#\# Key Architectural Rules
+
+\- All API logic lives in \`apps/web/app/api/\*\*\`. No business logic in components.
+
+\- Use Server Components for data fetching on the web. Use Server Actions for mutations.
+
+\- Mobile app communicates with the backend via \`apps/mobile/lib/api.ts\` only.
+
+\- Never expose API keys to the browser. All third-party calls are server-side only.
+
+\- Database changes must use \`drizzle-kit generate\` \+ \`drizzle-kit migrate\`. Commit SQL files.
+
+\- AI calls go through \`apps/web/lib/ai/gemini.ts\`. Parse all responses with Zod.
+
+\- Never store secrets in code. Use \`process.env\` with \`.env.local\`.
+
+\#\# External Services
+
+\- \*\*LLM:\*\* Gemini 2.0 Flash via \`lib/ai/gemini.ts\`
+
+\- \*\*Weather:\*\* Open-Meteo REST, no key, via \`lib/weather/open-meteo.ts\`
+
+\- \*\*Geocoding:\*\* Nominatim (server-side) \+ Mapbox (client autocomplete)
+
+\- \*\*Places/POI:\*\* OpenTripMap via \`lib/places/opentripmap.ts\`
+
+\- \*\*Storage:\*\* Cloudflare R2 via \`lib/storage/r2.ts\`
+
+\- \*\*Auth:\*\* Auth.js credentials \+ JWT, config in \`app/api/auth/\[...nextauth\]/route.ts\`
+
+\- \*\*Email:\*\* Resend via \`lib/email/resend.ts\`
+
+\- \*\*Push:\*\* Expo push service via \`lib/notifications/expo-push.ts\`
+
+\#\# Database
+
+\- ORM: Drizzle ORM. Schema in \`lib/db/schema.ts\`.
+
+\- Tables: users, trips, itinerary\_days, itinerary\_items, place\_cards, weather\_alerts, admin\_flags.
+
+\- Always run \`db:generate\` and \`db:migrate\` after schema changes.
+
+\- Migrations committed in \`drizzle/\` folder.
+
+\#\# Auth
+
+\- Auth.js with credentials provider and JWT strategy.
+
+\- JWT includes userId, email, role.
+
+\- Admin routes check \`session.user.role \=== 'admin'\` server-side.
+
+\- Mobile stores JWT in memory, sends as \`Authorization: Bearer \<token\>\`.
+
+\#\# Commit Guidelines
+
+\- One commit per completed feature or screen.
+
+\- Commit message format: \`feat: add \[feature\]\`, \`fix: \[issue\]\`, \`db: add \[table/migration\]\`.
+
+\- Target: 15+ commits across 3+ different days.  
