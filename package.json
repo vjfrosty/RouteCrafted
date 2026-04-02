@@ -16,5 +16,9 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@10.9.2"
+  "packageManager": "npm@10.9.2",
+  "dependencies": {
+    "eslint-config-next": "^16.2.2",
+    "next": "^16.2.2"
+  }
 }

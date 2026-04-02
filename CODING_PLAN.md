@@ -185,15 +185,15 @@ All routes live in `apps/web/app/api/`. JWT required = checked via `auth()` from
 ### Itinerary
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/itinerary/generate` | JWT | Generate full itinerary via Gemini; store days + items |
-| POST | `/api/itinerary/rewrite-day` | JWT | Rewrite one day (weather or manual) via Gemini |
+| POST | `/api/itinerary/generate` | JWT | Generate full itinerary via OpenRouter; store days + items |
+| POST | `/api/itinerary/rewrite-day` | JWT | Rewrite one day (weather or manual) via OpenRouter |
 | PATCH | `/api/itinerary/items/:id` | JWT | Edit a single itinerary item |
 | DELETE | `/api/itinerary/items/:id` | JWT | Remove a single itinerary item |
 
 ### Place Cards
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/places/generate-cards` | JWT | Generate worth-it/skip-it cards via Gemini + OpenTripMap |
+| POST | `/api/places/generate-cards` | JWT | Generate worth-it/skip-it cards via OpenRouter + OpenTripMap |
 | GET | `/api/places/cards/:tripId` | JWT | List all place cards for a trip |
 | GET | `/api/places/cards/item/:id` | JWT | Single place card |
 | POST | `/api/places/flag/:id` | JWT | Flag a card as inaccurate |
@@ -254,7 +254,7 @@ Mobile communicates **only** via the Next.js REST API (`apps/mobile/lib/api.ts`)
 
 ## 7. AI Feature Prompts
 
-All prompts are assembled and called in `apps/web/lib/ai/gemini.ts`. Always request `responseMimeType: "application/json"` and validate the result before writing to DB.
+All prompts are assembled and called in `apps/web/lib/ai/openrouter.ts`. Always request `response_format: { type: "json_object" }` and validate the result with Zod before writing to DB.
 
 ### 7.1 Itinerary Generation
 
@@ -339,22 +339,32 @@ All prompts are assembled and called in `apps/web/lib/ai/gemini.ts`. Always requ
 
 ## 8. External Integrations
 
-### 8.1 Google Gemini 2.0 Flash (Primary LLM)
-_All calls through `apps/web/lib/ai/gemini.ts`_
+### 8.1 OpenRouter (Primary LLM)
+_All calls through `apps/web/lib/ai/openrouter.ts`_
 ```ts
-import { GoogleGenerativeAI } from "@google/generative-ai"
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
-  generationConfig: { responseMimeType: "application/json" }
+import OpenAI from "openai"
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY!,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "https://routecrafted.com",
+    "X-Title": "RouteCrafted",
+  },
 })
-const result = await model.generateContent(prompt)
-const data = JSON.parse(result.response.text())
+
+export async function generateJSON<T>(prompt: string): Promise<T> {
+  const completion = await openrouter.chat.completions.create({
+    model: process.env.OPENROUTER_MODEL ?? "deepseek/deepseek-chat",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+  })
+  return JSON.parse(completion.choices[0].message.content!) as T
+}
 ```
-Free tier: 1,500 requests/day.
+Free credits on signup; many open models available at $0 cost. Swap the model via `OPENROUTER_MODEL` env var.
 
 ### 8.2 Groq (Fallback LLM)
-_Use when Gemini quota is exceeded_
+_Use as a low-latency fallback for streaming responses or when OpenRouter rate limits apply_
 ```ts
 import Groq from "groq-sdk"
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -493,8 +503,9 @@ NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
 NEXTAUTH_URL=http://localhost:3000
 
 # AI
-GEMINI_API_KEY=           # https://aistudio.google.com
-GROQ_API_KEY=             # https://console.groq.com
+OPENROUTER_API_KEY=       # https://openrouter.ai
+OPENROUTER_MODEL=deepseek/deepseek-chat  # any model slug from openrouter.ai/models
+GROQ_API_KEY=             # https://console.groq.com (fallback)
 
 # Geocoding (client-side autocomplete only)
 NEXT_PUBLIC_MAPBOX_TOKEN= # https://mapbox.com — only public env var

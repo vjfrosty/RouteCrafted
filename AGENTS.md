@@ -51,7 +51,7 @@ Never create these from scratch — these modules already exist or must be creat
 
 | Purpose | Path |
 |---|---|
-| All Gemini AI calls | `apps/web/lib/ai/gemini.ts` |
+| All OpenRouter AI calls | `apps/web/lib/ai/openrouter.ts` |
 | All weather calls | `apps/web/lib/weather/open-meteo.ts` |
 | Drizzle client + schema | `apps/web/lib/db/` |
 | Cloudflare R2 uploads | `apps/web/lib/storage/r2.ts` |
@@ -160,7 +160,7 @@ const { role } = await req.json()  // attacker-controlled — never use for acce
 **Always:**
 - Run `drizzle-kit generate` + `drizzle-kit migrate` before any schema changes
 - Guard every protected route with `auth()` from Auth.js
-- Route all AI calls through `apps/web/lib/ai/gemini.ts`
+- Route all AI calls through `apps/web/lib/ai/openrouter.ts`
 - Validate and sanitize all user input at API boundaries (use `zod`)
 
 **Ask first:**
