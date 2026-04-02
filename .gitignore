@@ -11,9 +11,12 @@
 # next.js
 /.next/
 /out/
+apps/web/.next/
+apps/web/out/
 
 # production
 /build
+dist/
 
 # misc
 .DS_Store
@@ -37,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+apps/web/next-env.d.ts
+
+# Turbo cache
+.turbo/
+
+# Expo
+apps/mobile/.expo/

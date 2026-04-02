@@ -1,0 +1,10 @@
+{
+  "name": "mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "expo start",
+    "build": "echo 'Mobile build not yet configured'",
+    "lint": "echo 'Mobile lint not yet configured'"
+  }
+}
