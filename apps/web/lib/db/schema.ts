@@ -1,0 +1,147 @@
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  numeric,
+  date,
+  integer,
+  boolean,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+
+// ─── users ───────────────────────────────────────────────────────────────────
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").unique().notNull(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name").notNull(),
+  role: text("role").notNull().default("traveler"), // 'traveler' | 'admin'
+  avatarUrl: text("avatar_url"),
+  expoPushToken: text("expo_push_token"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── trips ────────────────────────────────────────────────────────────────────
+
+export const trips = pgTable("trips", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  destination: text("destination").notNull(),
+  country: text("country").notNull(),
+  lat: numeric("lat"),
+  long: numeric("long"),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  budgetRange: text("budget_range").notNull(), // 'budget' | 'mid' | 'luxury'
+  travelStyle: text("travel_style").notNull(), // 'cultural' | 'adventure' | 'relaxation' | 'foodie'
+  groupType: text("group_type").notNull(), // 'solo' | 'couple' | 'family' | 'friends'
+  pacing: text("pacing").notNull(), // 'relaxed' | 'moderate' | 'packed'
+  status: text("status").notNull().default("draft"), // 'draft' | 'active' | 'completed'
+  coverImageUrl: text("cover_image_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── itinerary_days ───────────────────────────────────────────────────────────
+
+export const itineraryDays = pgTable("itinerary_days", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  tripId: uuid("trip_id")
+    .notNull()
+    .references(() => trips.id, { onDelete: "cascade" }),
+  dayNumber: integer("day_number").notNull(),
+  date: date("date").notNull(),
+  theme: text("theme").notNull(),
+  summary: text("summary").notNull(),
+  weatherCode: integer("weather_code"),
+  weatherLabel: text("weather_label"),
+  weatherAlerted: boolean("weather_alerted").notNull().default(false),
+  rewrittenAt: timestamp("rewritten_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── itinerary_items ──────────────────────────────────────────────────────────
+
+export const itineraryItems = pgTable("itinerary_items", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  dayId: uuid("day_id")
+    .notNull()
+    .references(() => itineraryDays.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+  timeBlock: text("time_block").notNull(), // 'morning' | 'afternoon' | 'evening'
+  type: text("type").notNull(), // 'activity' | 'meal' | 'transport'
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  location: text("location").notNull(),
+  durationMins: integer("duration_mins").notNull(),
+  estimatedCost: numeric("estimated_cost").notNull(),
+  isOptional: boolean("is_optional").notNull().default(false),
+  placeCardId: uuid("place_card_id"), // FK added in Phase 6
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── place_cards ──────────────────────────────────────────────────────────────
+
+export const placeCards = pgTable("place_cards", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  tripId: uuid("trip_id")
+    .notNull()
+    .references(() => trips.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  verdict: text("verdict").notNull(), // 'worth_it' | 'skip_it' | 'depends'
+  summary: text("summary").notNull(),
+  worthItReasons: text("worth_it_reasons").array().notNull().default(sql`'{}'`),
+  skipItReasons: text("skip_it_reasons").array().notNull().default(sql`'{}'`),
+  bestFor: text("best_for").notNull(),
+  costLevel: text("cost_level").notNull(), // 'free' | 'low' | 'medium' | 'high'
+  timeNeeded: text("time_needed").notNull(),
+  lat: numeric("lat"),
+  long: numeric("long"),
+  imageUrl: text("image_url"),
+  flagged: boolean("flagged").notNull().default(false),
+  flagReason: text("flag_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── weather_alerts ───────────────────────────────────────────────────────────
+
+export const weatherAlerts = pgTable("weather_alerts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  tripId: uuid("trip_id")
+    .notNull()
+    .references(() => trips.id, { onDelete: "cascade" }),
+  dayId: uuid("day_id")
+    .notNull()
+    .references(() => itineraryDays.id, { onDelete: "cascade" }),
+  alertType: text("alert_type").notNull(), // 'rain' | 'storm' | 'extreme_heat' | 'snow'
+  forecastCode: integer("forecast_code").notNull(),
+  alertedAt: timestamp("alerted_at").notNull().defaultNow(),
+  dismissed: boolean("dismissed").notNull().default(false),
+  rewriteAccepted: boolean("rewrite_accepted").notNull().default(false),
+});
+
+// ─── admin_flags ──────────────────────────────────────────────────────────────
+
+export const adminFlags = pgTable("admin_flags", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  placeCardId: uuid("place_card_id")
+    .notNull()
+    .references(() => placeCards.id, { onDelete: "cascade" }),
+  raisedBy: uuid("raised_by")
+    .notNull()
+    .references(() => users.id),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("open"), // 'open' | 'resolved' | 'dismissed'
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
