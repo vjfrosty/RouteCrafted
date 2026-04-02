@@ -129,6 +129,31 @@ export const weatherAlerts = pgTable("weather_alerts", {
   rewriteAccepted: boolean("rewrite_accepted").notNull().default(false),
 });
 
+// ─── ai_prompts ───────────────────────────────────────────────────────────────
+
+export const aiPrompts = pgTable("ai_prompts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  promptKey: text("prompt_key").notNull(), // 'generate_itinerary' | 'rewrite_day' | 'place_card'
+  version: integer("version").notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  template: text("template").notNull(),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ─── ai_settings ──────────────────────────────────────────────────────────────
+
+export const aiSettings = pgTable("ai_settings", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description").notNull().default(""),
+  updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ─── admin_flags ──────────────────────────────────────────────────────────────
 
 export const adminFlags = pgTable("admin_flags", {

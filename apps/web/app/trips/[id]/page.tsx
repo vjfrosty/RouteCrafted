@@ -2,6 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { getTripById } from "@/lib/db/trips";
+import { getDaysByTrip, getDayWithItems } from "@/lib/db/itinerary";
+import { GenerateItineraryButton } from "@/components/itinerary/GenerateItineraryButton";
+import { DayCard } from "@/components/itinerary/DayCard";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -36,6 +39,16 @@ export default async function TripDetailPage({ params }: Props) {
   const { id } = await params;
   const trip = await getTripById(id, session.user.id);
   if (!trip) notFound();
+
+  const days = await getDaysByTrip(id);
+  // Fetch item counts for each day
+  const dayCounts = await Promise.all(
+    days.map(async (day) => {
+      const full = await getDayWithItems(id, day.dayNumber);
+      return { dayId: day.id, count: full?.items.length ?? 0 };
+    }),
+  );
+  const countMap = new Map(dayCounts.map((d) => [d.dayId, d.count]));
 
   const nights =
     Math.round(
@@ -105,21 +118,44 @@ export default async function TripDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Phase 4 placeholder */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-          <div className="text-4xl mb-3">🤖</div>
-          <h2 className="text-lg font-semibold text-white mb-2">
-            AI itinerary coming soon
-          </h2>
-          <p className="text-slate-400 text-sm mb-6">
-            Itinerary generation will be available in the next update.
-          </p>
-          <button
-            disabled
-            className="inline-block bg-blue-600/40 text-white/50 font-semibold rounded-lg px-6 py-2.5 cursor-not-allowed"
-          >
-            Generate itinerary
-          </button>
+        {/* Itinerary section */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+          {days.length === 0 ? (
+            <div className="text-center">
+              <div className="text-4xl mb-3">🤖</div>
+              <h2 className="text-lg font-semibold text-white mb-2">
+                Ready to plan your trip?
+              </h2>
+              <p className="text-slate-400 text-sm mb-6">
+                Our AI will generate a day-by-day itinerary tailored to your preferences.
+              </p>
+              <GenerateItineraryButton tripId={id} />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                  Itinerary — {days.length} day{days.length !== 1 ? "s" : ""}
+                </h2>
+                <GenerateItineraryButton tripId={id} />
+              </div>
+              <div className="space-y-3">
+                {days.map((day) => (
+                  <DayCard
+                    key={day.id}
+                    tripId={id}
+                    dayNumber={day.dayNumber}
+                    date={day.date}
+                    theme={day.theme}
+                    summary={day.summary}
+                    itemCount={countMap.get(day.id) ?? 0}
+                    weatherLabel={day.weatherLabel}
+                    rewrittenAt={day.rewrittenAt}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </main>
