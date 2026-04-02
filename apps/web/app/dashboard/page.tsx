@@ -3,6 +3,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getTripsByUser } from "@/lib/db/trips";
 import { TripCard } from "@/components/trips/TripCard";
+import { getAlertCountsByUser } from "@/lib/db/weather";
+import { runWeatherCheck } from "@/lib/weather/check";
 
 export const metadata = { title: "Dashboard — RouteCrafted" };
 
@@ -10,7 +12,23 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const trips = await getTripsByUser(session.user.id);
+  const [trips, alertCounts] = await Promise.all([
+    getTripsByUser(session.user.id),
+    getAlertCountsByUser(session.user.id),
+  ]);
+
+  // Background weather check for upcoming trips (within Open-Meteo's 16-day window)
+  const today = new Date();
+  const cutoff = new Date(today.getTime() + 16 * 86_400_000);
+  const upcomingTrips = trips.filter((t) => {
+    const start = new Date(t.startDate + "T00:00:00");
+    const end = new Date(t.endDate + "T00:00:00");
+    return end >= today && start <= cutoff;
+  });
+  // Fire-and-forget: failures silently skipped, page never blocked
+  void Promise.allSettled(
+    upcomingTrips.map((t) => runWeatherCheck(t.id, session.user.id)),
+  );
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-6 py-12">
@@ -48,7 +66,7 @@ export default async function DashboardPage() {
         {trips.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
             {trips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
+              <TripCard key={trip.id} trip={trip} alertCount={alertCounts[trip.id] ?? 0} />
             ))}
           </div>
         ) : (

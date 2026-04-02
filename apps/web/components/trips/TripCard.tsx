@@ -34,7 +34,13 @@ function formatDateRange(start: string, end: string) {
   return `${fmt(start)} – ${fmt(end)}`;
 }
 
-export function TripCard({ trip }: { trip: Trip }) {
+export function TripCard({
+  trip,
+  alertCount = 0,
+}: {
+  trip: Trip;
+  alertCount?: number;
+}) {
   return (
     <Link
       href={`/trips/${trip.id}`}
@@ -47,11 +53,18 @@ export function TripCard({ trip }: { trip: Trip }) {
           </h3>
           <p className="text-sm text-slate-400">{trip.country}</p>
         </div>
-        <span
-          className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
-        >
-          {chipLabel(trip.status)}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          {alertCount > 0 && (
+            <span className="text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full px-2 py-0.5">
+              ⚠ {alertCount}
+            </span>
+          )}
+          <span
+            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
+          >
+            {chipLabel(trip.status)}
+          </span>
+        </div>
       </div>
 
       <p className="text-sm text-blue-300 mb-4">

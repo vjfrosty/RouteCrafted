@@ -3,8 +3,12 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getTripById } from "@/lib/db/trips";
 import { getDaysByTrip, getDayWithItems } from "@/lib/db/itinerary";
+import { runWeatherCheck } from "@/lib/weather/check";
+import { getActiveAlertsByTrip } from "@/lib/db/weather";
 import { GenerateItineraryButton } from "@/components/itinerary/GenerateItineraryButton";
 import { DayCard } from "@/components/itinerary/DayCard";
+import { WeatherAlertBanner } from "@/components/weather/WeatherAlertBanner";
+import { RefreshWeatherButton } from "@/components/weather/RefreshWeatherButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -40,7 +44,14 @@ export default async function TripDetailPage({ params }: Props) {
   const trip = await getTripById(id, session.user.id);
   if (!trip) notFound();
 
-  const days = await getDaysByTrip(id);
+  // Auto-check weather on every page open (idempotent, cached forecast)
+  const [days, alerts] = await Promise.all([
+    getDaysByTrip(id),
+    runWeatherCheck(id, session.user.id)
+      .then(() => getActiveAlertsByTrip(id))
+      .catch(() => getActiveAlertsByTrip(id)),
+  ]);
+
   // Fetch item counts for each day
   const dayCounts = await Promise.all(
     days.map(async (day) => {
@@ -73,11 +84,14 @@ export default async function TripDetailPage({ params }: Props) {
             <h1 className="text-3xl font-bold text-white">{trip.destination}</h1>
             <p className="text-blue-300 mt-1">{trip.country}</p>
           </div>
-          <span
-            className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
-          >
-            {label(trip.status)}
-          </span>
+          <div className="flex flex-col items-end gap-2">
+            <span
+              className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
+            >
+              {label(trip.status)}
+            </span>
+            {days.length > 0 && <RefreshWeatherButton tripId={id} />}
+          </div>
         </div>
 
         {/* Dates */}
@@ -117,6 +131,28 @@ export default async function TripDetailPage({ params }: Props) {
             ))}
           </div>
         </div>
+
+        {/* Weather Alerts */}
+        {alerts.length > 0 && (
+          <div className="mb-4 space-y-3">
+            {alerts.map((alert) => (
+              <WeatherAlertBanner
+                key={alert.id}
+                alert={{
+                  id: alert.id,
+                  tripId: alert.tripId,
+                  dayId: alert.dayId,
+                  alertType: alert.alertType,
+                  forecastCode: alert.forecastCode,
+                  weatherLabel: alert.weatherLabel,
+                }}
+                dayNumber={alert.dayNumber}
+                date={alert.date}
+                theme={alert.theme}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Itinerary section */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">

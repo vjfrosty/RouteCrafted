@@ -1,12 +1,12 @@
 # PROGRESS.md — RouteCrafted
 
-_Last updated: 2 April 2026 — Phase 4 complete_
+_Last updated: 2 April 2026 — Phase 5 complete_
 
 ---
 
 ## Current State
 
-Phase 4 (Itinerary AI + Admin Prompt Management) is complete and building cleanly. Users can generate AI-powered day-by-day itineraries for their trips, view per-day time blocks, and trigger a day rewrite. Admins can manage every AI prompt and model setting from a live admin panel without touching code — all changes are versioned and reversible.
+Phase 5 (Weather Integration) is complete and building cleanly. Open-Meteo forecasts are checked automatically on every trip page open and on dashboard load — no manual trigger required. Weather alerts surface as dismissable banners with a one-click "Rewrite Day" action, and TripCards on the dashboard show an amber badge whenever active alerts exist.
 
 **Live URL:** https://RouteCrafted.com (Vercel)
 
@@ -20,7 +20,7 @@ Phase 4 (Itinerary AI + Admin Prompt Management) is complete and building cleanl
 | **2 — Auth + DB** | ✅ Done | Neon DB (7 tables), Auth.js v5, register/login/dashboard |
 | **3 — Trip CRUD** | ✅ Done | 5 API routes, Mapbox form, TripCard, dashboard grid, trip detail |
 | **4 — Itinerary AI** | ✅ Done | AI generation, day rewrite, per-day page, DB prompt management, admin panel |
-| **5 — Weather** | ⬜ Not started | |
+| **5 — Weather** | ✅ Done | Auto-check on page open + dashboard, dismissable banners, rewrite-day integration |
 | **6 — Place Cards** | ⬜ Not started | |
 | **7 — Admin + Polish** | ⬜ Not started | |
 
