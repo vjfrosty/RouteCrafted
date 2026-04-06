@@ -47,15 +47,18 @@ export function GeneratePlaceCardsButton({ tripId, hasItinerary }: Props) {
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-xl transition"
+        className="inline-flex items-center gap-2 horizon-gradient hover:opacity-90 disabled:opacity-60 text-on-primary text-sm font-headline font-bold px-6 py-2.5 rounded-full transition"
       >
         {loading ? (
           <>
-            <span className="animate-spin">⟳</span>
+            <span className="animate-spin inline-block material-symbols-outlined text-[16px]">autorenew</span>
             Generating…
           </>
         ) : (
-          <>✦ Generate Place Cards</>
+          <>
+            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+            Generate Place Cards
+          </>
         )}
       </button>
       {error && <p className="text-xs text-red-400">{error}</p>}

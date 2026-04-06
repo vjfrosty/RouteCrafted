@@ -74,29 +74,42 @@ export function WeatherAlertBanner({ alert, dayNumber, date, theme }: Props) {
   }
 
   return (
-    <div className="flex items-start gap-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-      <div className="text-2xl mt-0.5 select-none">{icon}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-amber-300 font-semibold text-sm">
-          Day {dayNumber} — {formatDate(date)}
-        </p>
-        <p className="text-white text-sm font-medium mt-0.5">{theme}</p>
-        {alert.weatherLabel && (
-          <p className="text-amber-200/80 text-sm mt-1">{alert.weatherLabel}</p>
-        )}
+    <div className="relative overflow-hidden bg-gradient-to-br from-primary to-primary-container rounded-3xl p-6 shadow-xl text-white">
+      {/* Decorative icon */}
+      <span
+        className="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] text-white/10 select-none pointer-events-none"
+        aria-hidden
+      >
+        thunderstorm
+      </span>
+
+      <div className="relative flex items-start gap-4">
+        <span className="material-symbols-outlined text-[32px] text-tertiary-fixed mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
+          warning
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="font-headline font-bold text-lg leading-snug">
+            Day {dayNumber} — {formatDate(date)}
+          </p>
+          <p className="text-blue-100 text-sm font-medium mt-0.5">{theme}</p>
+          {alert.weatherLabel && (
+            <p className="text-blue-100/80 text-sm mt-1">{alert.weatherLabel}</p>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+
+      <div className="relative flex items-center gap-3 mt-5">
         <button
           onClick={handleRewrite}
           disabled={busy}
-          className="text-xs font-semibold bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black rounded-lg px-3 py-1.5 transition"
+          className="bg-tertiary-fixed hover:bg-tertiary-fixed-dim disabled:opacity-50 text-on-tertiary-fixed text-sm font-headline font-bold rounded-full px-5 py-2 transition"
         >
-          {rewriting ? "Rewriting…" : "Rewrite Day"}
+          {rewriting ? "Rewriting…" : "Adjust Plan"}
         </button>
         <button
           onClick={handleDismiss}
           disabled={busy}
-          className="text-xs text-slate-400 hover:text-white disabled:opacity-50 transition px-2 py-1.5"
+          className="text-white/70 hover:text-white disabled:opacity-50 text-sm font-medium transition px-3 py-2"
         >
           {dismissing ? "…" : "Dismiss"}
         </button>

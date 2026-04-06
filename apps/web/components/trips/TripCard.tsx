@@ -17,9 +17,10 @@ type Trip = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-  active: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  completed: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  draft: "bg-surface-container-high text-on-surface-variant",
+  active: "bg-primary-container text-on-primary",
+  completed: "bg-secondary text-on-secondary",
+  planned: "bg-tertiary-fixed text-on-tertiary-fixed",
 };
 
 function chipLabel(value: string) {
@@ -46,58 +47,66 @@ export function TripCard({
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="block bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden transition group"
+      className="block bg-surface-container-lowest rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow group"
     >
       {/* Cover image */}
-      {trip.coverImageUrl && (
-        <div className="relative h-32 w-full">
+      <div className="relative h-48 w-full bg-surface-container-low overflow-hidden">
+        {trip.coverImageUrl ? (
           <Image
             src={trip.coverImageUrl}
             alt={`${trip.destination} cover`}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/60" />
-        </div>
-      )}
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[64px] text-outline-variant">map</span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent" />
+        {/* Status badge */}
+        <span className={`absolute top-4 left-4 text-xs font-label font-semibold px-3 py-1 rounded-full ${
+          STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft
+        }`}>
+          {chipLabel(trip.status)}
+        </span>
+      </div>
 
       <div className="p-6">
-        <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition">
-            {trip.destination}
-          </h3>
-          <p className="text-sm text-slate-400">{trip.country}</p>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div>
+            <h3 className="text-xl font-headline font-bold text-on-surface group-hover:text-primary transition-colors">
+              {trip.destination}
+            </h3>
+            <p className="text-sm text-on-surface-variant">{trip.country}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {alertCount > 0 && (
+              <span className="text-xs font-semibold bg-tertiary-fixed text-on-tertiary-fixed rounded-full px-2.5 py-1 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">warning</span>
+                {alertCount}
+              </span>
+            )}
+            <span className="sr-only">{chipLabel(trip.status)}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {alertCount > 0 && (
-            <span className="text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full px-2 py-0.5">
-              ⚠ {alertCount}
+
+        <p className="text-sm text-on-surface-variant mb-4 flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+          {formatDateRange(trip.startDate, trip.endDate)}
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          {[trip.budgetRange, trip.travelStyle, trip.pacing].map((tag) => (
+            <span
+              key={tag}
+              className="text-xs bg-surface-container-low text-on-surface-variant rounded-full px-3 py-1 font-label font-medium"
+            >
+              {chipLabel(tag)}
             </span>
-          )}
-          <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
-          >
-            {chipLabel(trip.status)}
-          </span>
+          ))}
         </div>
-      </div>
-
-      <p className="text-sm text-blue-300 mb-4">
-        {formatDateRange(trip.startDate, trip.endDate)}
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        {[trip.budgetRange, trip.travelStyle, trip.pacing].map((tag) => (
-          <span
-            key={tag}
-            className="text-xs bg-white/5 border border-white/10 text-slate-300 rounded-full px-3 py-1"
-          >
-            {chipLabel(tag)}
-          </span>
-        ))}
-      </div>
       </div>
     </Link>
   );

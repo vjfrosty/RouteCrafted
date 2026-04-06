@@ -41,7 +41,7 @@ export function RewriteDayButton({ tripId, dayId }: RewriteDayButtonProps) {
       <button
         onClick={handleRewrite}
         disabled={loading}
-        className="inline-flex items-center gap-2 text-sm bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white font-medium rounded-lg px-4 py-2 transition"
+        className="inline-flex items-center gap-2 text-sm horizon-gradient hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-headline font-bold rounded-full px-6 py-2.5 transition"
       >
         {loading ? (
           <>
@@ -68,7 +68,10 @@ export function RewriteDayButton({ tripId, dayId }: RewriteDayButtonProps) {
             Rewriting…
           </>
         ) : (
-          "↺ Rewrite this day"
+          <>
+            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+            Rewrite this day
+          </>
         )}
       </button>
     </div>

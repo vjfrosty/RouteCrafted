@@ -17,9 +17,10 @@ import { TripCoverUpload } from "@/components/trips/TripCoverUpload";
 type Props = { params: Promise<{ id: string }> };
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-  active: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  completed: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  draft: "bg-surface-container-high text-on-surface-variant",
+  active: "bg-primary-container text-on-primary",
+  completed: "bg-secondary text-on-secondary",
+  planned: "bg-tertiary-fixed text-on-tertiary-fixed",
 };
 
 function label(value: string) {
@@ -73,160 +74,190 @@ export default async function TripDetailPage({ params }: Props) {
     ) || 0;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-6 py-12">
-      <div className="max-w-3xl mx-auto">
-        {/* Back */}
+    <div className="min-h-screen bg-surface px-4 sm:px-6 py-10">
+      <div className="max-w-7xl mx-auto">
+        {/* Back nav */}
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition mb-8"
+          className="inline-flex items-center gap-2 text-sm font-label font-medium text-on-surface-variant hover:text-on-surface transition mb-8"
         >
-          ← Back to dashboard
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          My Journeys
         </Link>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{trip.destination}</h1>
-            <p className="text-blue-300 mt-1">{trip.country}</p>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <span
-              className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-full border ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}
-            >
-              {label(trip.status)}
-            </span>
-            {days.length > 0 && <RefreshWeatherButton tripId={id} />}
-          </div>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* ── Main column ── */}
+          <div className="lg:col-span-8 space-y-8">
 
-        {/* Cover image upload */}
-        <div className="mb-6">
-          <TripCoverUpload tripId={id} currentUrl={trip.coverImageUrl ?? null} />
-        </div>
-
-        {/* Dates */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-4">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            Dates
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Departure</p>
-              <p className="text-white font-medium">{formatDate(trip.startDate)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Return</p>
-              <p className="text-white font-medium">{formatDate(trip.endDate)}</p>
-            </div>
-          </div>
-          <p className="mt-4 text-sm text-blue-300">{nights} night{nights !== 1 ? "s" : ""}</p>
-        </div>
-
-        {/* Trip preferences */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            Preferences
-          </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              { key: "Budget", val: trip.budgetRange },
-              { key: "Style", val: trip.travelStyle },
-              { key: "Group", val: trip.groupType },
-              { key: "Pacing", val: trip.pacing },
-            ].map(({ key, val }) => (
-              <div key={key}>
-                <p className="text-xs text-slate-500 mb-1">{key}</p>
-                <p className="text-white font-medium">{label(val)}</p>
+            {/* Trip header */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="font-headline font-extrabold text-4xl text-on-surface tracking-tight">
+                    {trip.destination}
+                  </h1>
+                  <span className={`text-xs font-label font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[trip.status] ?? STATUS_STYLES.draft}`}>
+                    {label(trip.status)}
+                  </span>
+                </div>
+                <p className="text-on-surface-variant">{trip.country}</p>
+                <p className="text-sm text-on-surface-variant mt-1 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">calendar_today</span>
+                  {formatDate(trip.startDate)} – {formatDate(trip.endDate)} · {nights} night{nights !== 1 ? 's' : ''}
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Weather Alerts */}
-        {alerts.length > 0 && (
-          <div className="mb-4 space-y-3">
-            {alerts.map((alert) => (
-              <WeatherAlertBanner
-                key={alert.id}
-                alert={{
-                  id: alert.id,
-                  tripId: alert.tripId,
-                  dayId: alert.dayId,
-                  alertType: alert.alertType,
-                  forecastCode: alert.forecastCode,
-                  weatherLabel: alert.weatherLabel,
-                }}
-                dayNumber={alert.dayNumber}
-                date={alert.date}
-                theme={alert.theme}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Place Cards section */}
-        {days.length > 0 && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mt-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                Place Cards{placeCards.length > 0 ? ` — ${placeCards.length}` : ""}
-              </h2>
-              <GeneratePlaceCardsButton tripId={id} hasItinerary={days.length > 0} />
-            </div>
-            {placeCards.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">
-                No place cards yet. Click ✦ Generate Place Cards to get Worth&nbsp;It&nbsp;/&nbsp;Skip&nbsp;It verdicts for your activities.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {placeCards.map((card) => (
-                  <PlaceCard key={card.id} card={card} />
-                ))}
+              <div className="flex flex-col gap-2 items-end">
+                {days.length > 0 && <RefreshWeatherButton tripId={id} />}
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Itinerary section */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-          {days.length === 0 ? (
-            <div className="text-center">
-              <div className="text-4xl mb-3">🤖</div>
-              <h2 className="text-lg font-semibold text-white mb-2">
-                Ready to plan your trip?
-              </h2>
-              <p className="text-slate-400 text-sm mb-6">
-                Our AI will generate a day-by-day itinerary tailored to your preferences.
-              </p>
-              <GenerateItineraryButton tripId={id} />
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                  Itinerary — {days.length} day{days.length !== 1 ? "s" : ""}
-                </h2>
-                <GenerateItineraryButton tripId={id} />
-              </div>
-              <div className="space-y-3">
-                {days.map((day) => (
-                  <DayCard
-                    key={day.id}
-                    tripId={id}
-                    dayNumber={day.dayNumber}
-                    date={day.date}
-                    theme={day.theme}
-                    summary={day.summary}
-                    itemCount={countMap.get(day.id) ?? 0}
-                    weatherLabel={day.weatherLabel}
-                    rewrittenAt={day.rewrittenAt}
+
+            {/* Cover image upload */}
+            <TripCoverUpload tripId={id} currentUrl={trip.coverImageUrl ?? null} />
+
+            {/* Weather Alerts */}
+            {alerts.length > 0 && (
+              <div className="space-y-4">
+                {alerts.map((alert) => (
+                  <WeatherAlertBanner
+                    key={alert.id}
+                    alert={{
+                      id: alert.id,
+                      tripId: alert.tripId,
+                      dayId: alert.dayId,
+                      alertType: alert.alertType,
+                      forecastCode: alert.forecastCode,
+                      weatherLabel: alert.weatherLabel,
+                    }}
+                    dayNumber={alert.dayNumber}
+                    date={alert.date}
+                    theme={alert.theme}
                   />
                 ))}
               </div>
-            </>
-          )}
+            )}
+
+            {/* Day pills */}
+            {days.length > 0 && (
+              <div>
+                <h2 className="font-headline font-bold text-on-surface text-lg mb-4">Itinerary</h2>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                  {days.map((day) => (
+                    <Link
+                      key={day.id}
+                      href={`/trips/${id}/day/${day.dayNumber}`}
+                      className="flex-shrink-0 w-20 h-24 rounded-2xl bg-surface-container-lowest shadow-card hover:shadow-card-hover flex flex-col items-center justify-center gap-1 transition-shadow group"
+                    >
+                      <span className="text-xs font-label font-semibold text-on-surface-variant group-hover:text-primary transition-colors">
+                        Day
+                      </span>
+                      <span className="font-headline font-extrabold text-2xl text-on-surface group-hover:text-primary transition-colors">
+                        {day.dayNumber}
+                      </span>
+                      <span className="text-[10px] font-label text-on-surface-variant text-center px-1 leading-tight line-clamp-2">
+                        {day.theme}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Generate itinerary CTA */}
+            {days.length === 0 && (
+              <div className="bg-surface-container-lowest rounded-3xl p-10 text-center shadow-card">
+                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-primary text-[40px]">auto_awesome</span>
+                </div>
+                <h2 className="font-headline font-bold text-2xl text-on-surface mb-3">Ready to plan?</h2>
+                <p className="text-on-surface-variant text-sm mb-8 max-w-sm mx-auto">
+                  Our AI will generate a day-by-day itinerary tailored to your preferences.
+                </p>
+                <GenerateItineraryButton tripId={id} />
+              </div>
+            )}
+
+            {/* Place Cards */}
+            {days.length > 0 && (
+              <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-card">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="font-headline font-bold text-on-surface text-lg">
+                      Place Cards
+                      {placeCards.length > 0 && (
+                        <span className="ml-2 text-sm font-label font-normal text-on-surface-variant">
+                          {placeCards.length} cards
+                        </span>
+                      )}
+                    </h2>
+                    <p className="text-xs text-on-surface-variant mt-1">Worth It / Skip It verdicts for your activities</p>
+                  </div>
+                  <GeneratePlaceCardsButton tripId={id} hasItinerary={days.length > 0} />
+                </div>
+                {placeCards.length === 0 ? (
+                  <p className="text-on-surface-variant text-sm text-center py-6">
+                    No place cards yet — generate them above.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {placeCards.map((card) => (
+                      <PlaceCard key={card.id} card={card} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Right Sidebar ── */}
+          <aside className="lg:col-span-4 space-y-6">
+            {/* Trip preferences */}
+            <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-card">
+              <h3 className="font-headline font-bold text-on-surface mb-5 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-primary">tune</span>
+                Trip Details
+              </h3>
+              <dl className="space-y-3">
+                {[
+                  { key: 'Budget', val: trip.budgetRange, icon: 'payments' },
+                  { key: 'Style', val: trip.travelStyle, icon: 'style' },
+                  { key: 'Group', val: trip.groupType, icon: 'group' },
+                  { key: 'Pacing', val: trip.pacing, icon: 'speed' },
+                ].map(({ key, val, icon }) => (
+                  <div key={key} className="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-2xl">
+                    <span className="material-symbols-outlined text-[18px] text-outline">{icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-on-surface-variant font-label">{key}</p>
+                      <p className="text-sm font-semibold text-on-surface">{label(val)}</p>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            {/* Budget tracker placeholder */}
+            <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-card">
+              <h3 className="font-headline font-bold text-on-surface mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
+                Budget
+              </h3>
+              <p className="text-xs font-label font-bold text-on-surface-variant uppercase tracking-wider mb-1">Range</p>
+              <p className="font-headline font-extrabold text-3xl text-on-surface capitalize">{trip.budgetRange}</p>
+              <p className="text-xs text-on-surface-variant mt-2">Detailed expense tracking coming soon.</p>
+            </div>
+
+            {/* Pro tip */}
+            <div className="bg-surface-container-low rounded-3xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+                <p className="text-xs font-label font-bold text-primary uppercase tracking-wider">Pro Tip</p>
+              </div>
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                Click on any day pill to see the full timeline and activities. Use the Rewrite button to let AI regenerate a day based on weather or preferences.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

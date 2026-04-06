@@ -60,7 +60,7 @@ export function AvatarUpload({ currentUrl, initials }: AvatarUploadProps) {
         className="relative group focus:outline-none"
         aria-label="Change avatar"
       >
-        <div className="h-20 w-20 rounded-full overflow-hidden bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+        <div className="h-24 w-24 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center text-on-surface-variant text-2xl font-headline font-bold">
           {preview ? (
             <Image
               src={preview}

@@ -38,12 +38,12 @@ export function GenerateItineraryButton({ tripId }: { tripId: string }) {
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-6 py-2.5 transition"
+        className="inline-flex items-center gap-2 horizon-gradient hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-headline font-bold rounded-full px-8 py-4 text-lg transition"
       >
         {loading ? (
           <>
             <svg
-              className="animate-spin h-4 w-4"
+              className="animate-spin h-5 w-5"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -62,10 +62,13 @@ export function GenerateItineraryButton({ tripId }: { tripId: string }) {
                 d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
               />
             </svg>
-            Generating… (this may take up to 30 seconds)
+            Generating… (up to 30 seconds)
           </>
         ) : (
-          "✨ Generate itinerary"
+          <>
+            <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+            Generate Itinerary
+          </>
         )}
       </button>
     </div>
