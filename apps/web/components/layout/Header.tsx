@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { auth } from '@/app/api/auth/[...nextauth]/route'
+import { auth } from '@/auth'
 import { ProfileMenu } from './ProfileMenu'
 
 export async function Header() {

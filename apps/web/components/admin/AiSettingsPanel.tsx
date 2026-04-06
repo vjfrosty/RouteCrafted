@@ -57,13 +57,13 @@ export function AiSettingsPanel({ settings }: { settings: AiSetting[] }) {
     key === "rewrite_day_weather_context" || key === "rewrite_day_reason_context";
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-      <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-5">
+    <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-card">
+      <h2 className="text-xs font-label font-bold text-on-surface-variant uppercase tracking-wider mb-5">
         AI Settings
       </h2>
 
       {error && (
-        <p className="text-red-400 text-sm mb-4">{error}</p>
+        <p className="text-error text-sm mb-4">{error}</p>
       )}
 
       <div className="space-y-5">
@@ -71,18 +71,18 @@ export function AiSettingsPanel({ settings }: { settings: AiSetting[] }) {
           <div key={s.key}>
             <div className="flex items-start justify-between gap-3 mb-1">
               <div>
-                <p className="text-white font-medium text-sm">
+                <p className="text-on-surface font-medium text-sm">
                   {SETTING_LABELS[s.key] ?? s.key}
                 </p>
                 {s.description && (
-                  <p className="text-xs text-slate-500 mt-0.5">{s.description}</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5">{s.description}</p>
                 )}
                 {SETTING_VARIABLES[s.key] && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {SETTING_VARIABLES[s.key].map((v) => (
                       <code
                         key={v}
-                        className="text-xs bg-blue-900/40 text-blue-300 px-1.5 py-0.5 rounded"
+                        className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded"
                       >
                         {`{{${v}}}`}
                       </code>
@@ -93,7 +93,7 @@ export function AiSettingsPanel({ settings }: { settings: AiSetting[] }) {
               {editingKey !== s.key && (
                 <button
                   onClick={() => startEdit(s)}
-                  className="shrink-0 text-xs text-blue-400 hover:text-blue-300 mt-1"
+                  className="shrink-0 text-xs text-primary hover:text-primary/80 mt-1"
                 >
                   Edit
                 </button>
@@ -107,34 +107,34 @@ export function AiSettingsPanel({ settings }: { settings: AiSetting[] }) {
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     rows={4}
-                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-surface-container-low rounded-2xl px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
                   />
                 ) : (
                   <input
                     type="text"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-surface-container-low rounded-2xl px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 )}
                 <div className="flex gap-2">
                   <button
                     onClick={() => save(s.key)}
                     disabled={saving}
-                    className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded px-3 py-1.5"
+                    className="text-xs horizon-gradient disabled:opacity-50 text-white rounded-full px-4 py-1.5"
                   >
                     {saving ? "Saving…" : "Save"}
                   </button>
                   <button
                     onClick={cancelEdit}
-                    className="text-xs text-slate-400 hover:text-white px-3 py-1.5"
+                    className="text-xs text-on-surface-variant hover:text-on-surface px-3 py-1.5"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <pre className="mt-1 text-xs text-slate-300 bg-slate-800/60 rounded-lg px-3 py-2 whitespace-pre-wrap break-all font-mono">
+              <pre className="mt-1 text-xs text-on-surface-variant bg-surface-container-low rounded-xl px-3 py-2 whitespace-pre-wrap break-all font-mono">
                 {s.value}
               </pre>
             )}

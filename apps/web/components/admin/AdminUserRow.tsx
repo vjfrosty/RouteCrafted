@@ -12,8 +12,8 @@ interface User {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  admin: "bg-violet-500/20 text-violet-300 border border-violet-500/30",
-  traveler: "bg-slate-500/20 text-slate-300 border border-slate-500/30",
+  admin: "bg-primary/10 text-primary",
+  traveler: "bg-surface-container-high text-on-surface-variant",
 };
 
 export function AdminUserRow({
@@ -41,25 +41,25 @@ export function AdminUserRow({
   }
 
   return (
-    <tr className="border-b border-white/5 hover:bg-white/5 transition">
-      <td className="px-4 py-3 text-white font-medium">{user.name}</td>
-      <td className="px-4 py-3 text-slate-400">{user.email}</td>
-      <td className="px-4 py-3">
+    <tr className="hover:bg-surface-container-low transition">
+      <td className="px-5 py-3 text-on-surface font-medium">{user.name}</td>
+      <td className="px-5 py-3 text-on-surface-variant">{user.email}</td>
+      <td className="px-5 py-3">
         <span
-          className={`text-xs px-2 py-0.5 rounded-full ${ROLE_STYLES[user.role] ?? ROLE_STYLES.traveler}`}
+          className={`text-xs px-2.5 py-0.5 rounded-full font-label ${ROLE_STYLES[user.role] ?? ROLE_STYLES.traveler}`}
         >
           {user.role}
         </span>
       </td>
-      <td className="px-4 py-3 text-slate-500 text-xs">
+      <td className="px-5 py-3 text-on-surface-variant text-xs">
         {new Date(user.createdAt).toLocaleDateString()}
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-5 py-3 text-right">
         {!isSelf && (
           <button
             onClick={toggleRole}
             disabled={loading}
-            className="text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1 rounded-lg transition disabled:opacity-50"
+            className="text-xs text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container-high rounded-full px-3 py-1 transition disabled:opacity-50"
           >
             {loading
               ? "…"
