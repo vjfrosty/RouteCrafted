@@ -32,13 +32,14 @@ export function RefreshWeatherButton({ tripId }: Props) {
       <button
         onClick={handleCheck}
         disabled={loading}
-        className="text-xs font-medium text-slate-300 hover:text-white disabled:opacity-50 border border-white/10 hover:border-white/20 rounded-lg px-3 py-1.5 transition"
+        className="flex items-center gap-1.5 text-xs font-label font-semibold text-on-surface-variant hover:text-primary disabled:opacity-50 bg-surface-container-low hover:bg-surface-container-high rounded-full px-4 py-2 transition"
       >
-        {loading ? "Checking…" : "↻ Refresh Weather"}
+        <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+        {loading ? "Checking…" : "Refresh Weather"}
       </button>
       {stale && (
-        <span className="text-xs text-slate-500">
-          Forecast unavailable (out of range)
+        <span className="text-xs font-label text-on-surface-variant">
+          Forecast out of range
         </span>
       )}
     </div>

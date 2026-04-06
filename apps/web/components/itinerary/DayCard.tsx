@@ -31,31 +31,37 @@ export function DayCard({
 }: DayCardProps) {
   return (
     <Link href={`/trips/${tripId}/day/${dayNumber}`} className="block group">
-      <div className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/40 rounded-2xl p-5 transition">
+      <div className="bg-surface-container-lowest rounded-3xl p-5 shadow-card hover:shadow-card-hover transition-shadow">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
-            <span className="shrink-0 bg-blue-600/30 text-blue-300 text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center">
+            <span className="shrink-0 w-9 h-9 bg-primary/10 text-primary font-headline font-extrabold text-sm rounded-2xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
               {dayNumber}
             </span>
             <div>
-              <p className="text-xs text-slate-400">{formatDate(date)}</p>
-              <h3 className="text-white font-semibold group-hover:text-blue-300 transition">
+              <p className="text-xs font-label text-on-surface-variant">{formatDate(date)}</p>
+              <h3 className="font-headline font-semibold text-on-surface group-hover:text-primary transition-colors">
                 {theme}
               </h3>
             </div>
           </div>
-          <span className="shrink-0 text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full">
+          <span className="shrink-0 text-xs font-label bg-surface-container-low text-on-surface-variant px-2.5 py-0.5 rounded-full">
             {itemCount} {itemCount === 1 ? "stop" : "stops"}
           </span>
         </div>
 
-        <p className="text-sm text-slate-400 line-clamp-2">{summary}</p>
+        <p className="text-sm text-on-surface-variant line-clamp-2">{summary}</p>
 
         {weatherLabel && (
-          <p className="mt-2 text-xs text-amber-400">⚠ {weatherLabel}</p>
+          <div className="mt-2 flex items-center gap-1.5 text-xs font-label text-tertiary-fixed">
+            <span className="material-symbols-outlined text-[14px]">partly_cloudy_day</span>
+            {weatherLabel}
+          </div>
         )}
         {rewrittenAt && (
-          <p className="mt-1 text-xs text-slate-500">Rewritten by AI</p>
+          <div className="mt-1 flex items-center gap-1.5 text-xs font-label text-primary">
+            <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
+            Rewritten by AI
+          </div>
         )}
       </div>
     </Link>

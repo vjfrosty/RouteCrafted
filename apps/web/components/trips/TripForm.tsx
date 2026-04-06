@@ -6,8 +6,8 @@ import { SearchBox } from "@mapbox/search-js-react";
 import type { SearchBoxRetrieveResponse } from "@mapbox/search-js-core";
 
 const SELECT_CLASS =
-  "w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
-const LABEL_CLASS = "block text-sm font-medium text-slate-300 mb-1.5";
+  "w-full bg-surface-container-low rounded-2xl px-4 py-3 text-on-surface text-sm font-label focus:outline-none focus:ring-2 focus:ring-primary";
+const LABEL_CLASS = "block text-xs font-label font-bold text-on-surface-variant mb-1.5 uppercase tracking-wider";
 
 export function TripForm() {
   const router = useRouter();
@@ -95,7 +95,7 @@ export function TripForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/5 border border-white/10 rounded-2xl p-8 space-y-6"
+      className="bg-surface-container-lowest rounded-3xl p-8 shadow-card space-y-6"
     >
       {/* Destination */}
       <div>
@@ -106,19 +106,20 @@ export function TripForm() {
           options={{ language: "en" }}
           theme={{
             variables: {
-              colorBackground: "rgba(255,255,255,0.05)",
-              colorBackgroundHover: "rgba(255,255,255,0.1)",
-              colorText: "#fff",
-              colorSecondary: "#94a3b8",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "0.5rem",
+              colorBackground: "#f0f3ff",
+              colorBackgroundHover: "#dee8ff",
+              colorText: "#111c2d",
+              colorSecondary: "#424754",
+              border: "none",
+              borderRadius: "1rem",
               fontFamily: "inherit",
             },
           }}
         />
         {destination && (
-          <p className="mt-1.5 text-xs text-blue-400">
-            Selected: {destination}{country ? `, ${country}` : ""}
+          <p className="mt-2 text-xs font-label text-primary flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            {destination}{country ? `, ${country}` : ""}
           </p>
         )}
       </div>
@@ -205,17 +206,28 @@ export function TripForm() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
-          {error}
-        </p>
+        <div className="flex items-start gap-2 bg-error/10 rounded-2xl px-4 py-3">
+          <span className="material-symbols-outlined text-[16px] text-error mt-0.5">error</span>
+          <p className="text-sm text-error font-label">{error}</p>
+        </div>
       )}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-6 py-3 transition"
+        className="w-full horizon-gradient hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-headline font-bold rounded-full px-6 py-4 text-base transition flex items-center justify-center gap-2"
       >
-        {loading ? "Creating trip…" : "Create trip"}
+        {loading ? (
+          <>
+            <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+            Creating trip…
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+            Craft my itinerary
+          </>
+        )}
       </button>
     </form>
   );

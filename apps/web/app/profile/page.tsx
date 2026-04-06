@@ -14,44 +14,59 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-6 py-12">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Your Profile</h1>
-        <p className="text-slate-400 mb-8">Manage your account details</p>
+    <div className="min-h-screen bg-surface px-4 sm:px-6 py-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left: profile identity */}
+          <aside className="lg:col-span-4 space-y-6">
+            <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-card text-center">
+              <div className="flex justify-center mb-5">
+                <AvatarUpload
+                  currentUrl={user.avatarUrl ?? null}
+                  initials={user.name?.charAt(0).toUpperCase() ?? "?"}
+                />
+              </div>
+              <h2 className="font-headline font-bold text-on-surface text-xl">{user.name}</h2>
+              <p className="text-sm font-label text-on-surface-variant mt-1">{user.email}</p>
+              <div className="mt-4">
+                <span className={`text-xs font-label font-semibold px-3 py-1 rounded-full ${
+                  user.role === "admin"
+                    ? "bg-primary-container/30 text-on-primary"
+                    : "bg-surface-container-high text-on-surface-variant"
+                }`}>
+                  {user.role}
+                </span>
+              </div>
+            </div>
+          </aside>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-          {/* Avatar with upload */}
-          <div className="flex items-center gap-4">
-            <AvatarUpload
-              currentUrl={user.avatarUrl ?? null}
-              initials={user.name?.charAt(0).toUpperCase() ?? "?"}
-            />
+          {/* Right: edit form + stats */}
+          <div className="lg:col-span-8 space-y-6">
             <div>
-              <p className="text-white font-semibold text-lg">{user.name}</p>
-              <p className="text-slate-400 text-sm">{user.email}</p>
+              <p className="text-xs font-label font-bold text-primary uppercase tracking-wider mb-2">Account</p>
+              <h1 className="font-headline font-extrabold text-4xl text-on-surface tracking-tight">
+                Your Profile
+              </h1>
+            </div>
+
+            <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-card">
+              <h3 className="font-headline font-bold text-on-surface text-lg mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-primary">edit</span>
+                Edit Details
+              </h3>
+              <ProfileForm initialName={user.name ?? ""} />
+            </div>
+
+            <div className="bg-surface-container-low rounded-3xl p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                <p className="text-xs font-label font-bold text-primary uppercase tracking-wider">Security</p>
+              </div>
+              <p className="text-sm text-on-surface-variant">Password changes and 2FA are managed through your OAuth provider (Google).</p>
             </div>
           </div>
-
-          {/* Role badge */}
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-sm">Role:</span>
-            <span
-              className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
-                user.role === "admin"
-                  ? "bg-violet-500/20 text-violet-300"
-                  : "bg-blue-500/20 text-blue-300"
-              }`}
-            >
-              {user.role}
-            </span>
-          </div>
-
-          <hr className="border-white/10" />
-
-          {/* Edit name form */}
-          <ProfileForm initialName={user.name ?? ""} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

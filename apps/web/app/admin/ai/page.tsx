@@ -21,19 +21,21 @@ export default async function AdminAiPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-6 py-12">
+    <div className="min-h-screen bg-surface px-4 sm:px-6 py-10">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <Link
           href="/admin"
-          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition mb-8"
+          className="inline-flex items-center gap-2 text-sm font-label text-on-surface-variant hover:text-on-surface transition mb-8"
         >
-          ← Back to admin
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          Back to admin
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">AI Configuration</h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-xs font-label font-bold text-primary uppercase tracking-wider mb-2">Administration</p>
+          <h1 className="font-headline font-extrabold text-3xl text-on-surface">AI Configuration</h1>
+          <p className="text-on-surface-variant mt-1">
             Manage prompt templates (with version history) and AI settings. New
             versions are activated immediately.
           </p>
@@ -47,6 +49,6 @@ export default async function AdminAiPage() {
           <AiPromptsPanel prompts={prompts} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -30,9 +30,9 @@ export function ProfileForm({ initialName }: { initialName: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-sm text-slate-400 mb-1" htmlFor="name">
+        <label className="block text-xs font-label font-bold text-on-surface-variant uppercase tracking-wider mb-2" htmlFor="name">
           Display Name
         </label>
         <input
@@ -43,27 +43,40 @@ export function ProfileForm({ initialName }: { initialName: string }) {
           maxLength={80}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/60"
+          className="w-full bg-surface-container-low rounded-2xl px-4 py-3 text-on-surface placeholder-on-surface-variant text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="Your name"
         />
       </div>
 
       {message && (
-        <p
-          className={`text-sm ${
-            message.type === "ok" ? "text-emerald-400" : "text-red-400"
-          }`}
-        >
+        <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-label ${
+          message.type === "ok"
+            ? "bg-secondary/10 text-secondary"
+            : "bg-error/10 text-error"
+        }`}>
+          <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            {message.type === "ok" ? "check_circle" : "error"}
+          </span>
           {message.text}
-        </p>
+        </div>
       )}
 
       <button
         type="submit"
         disabled={saving}
-        className="px-5 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white transition"
+        className="horizon-gradient hover:opacity-90 disabled:opacity-50 text-white font-headline font-bold rounded-full px-8 py-3 transition flex items-center gap-2"
       >
-        {saving ? "Saving…" : "Save Changes"}
+        {saving ? (
+          <>
+            <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+            Saving…
+          </>
+        ) : (
+          <>
+            <span className="material-symbols-outlined text-[18px]">save</span>
+            Save Changes
+          </>
+        )}
       </button>
     </form>
   );

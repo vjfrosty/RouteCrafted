@@ -55,7 +55,7 @@ export function TripCoverUpload({ tripId, currentUrl }: TripCoverUploadProps) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="group relative w-full h-40 rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-blue-500/40 transition focus:outline-none"
+        className="group relative w-full h-52 rounded-3xl overflow-hidden bg-surface-container-low hover:bg-surface-container-high transition focus:outline-none"
         aria-label="Upload trip cover image"
       >
         {preview ? (
@@ -63,19 +63,20 @@ export function TripCoverUpload({ tripId, currentUrl }: TripCoverUploadProps) {
             src={preview}
             alt="Trip cover"
             fill
-            className="object-cover"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
             unoptimized
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-2">
-            <span className="text-3xl">🖼️</span>
-            <span className="text-slate-400 text-sm">Add cover photo</span>
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <span className="material-symbols-outlined text-[40px] text-outline" style={{ fontVariationSettings: "'FILL' 1" }}>add_photo_alternate</span>
+            <span className="text-sm font-label text-on-surface-variant">Add cover photo</span>
           </div>
         )}
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-          <span className="text-white text-sm font-medium">
+          <span className="text-white text-sm font-label font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
             {uploading ? "Uploading…" : preview ? "Change cover" : "Upload cover"}
           </span>
         </div>
@@ -89,7 +90,12 @@ export function TripCoverUpload({ tripId, currentUrl }: TripCoverUploadProps) {
         onChange={handleFileChange}
       />
 
-      {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+      {error && (
+        <p className="text-xs font-label text-error mt-2 flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-[14px]">error</span>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -13,28 +13,29 @@ export default async function AdminUsersPage() {
   const { rows, total } = await getAllUsers(1, 50);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 px-6 py-12">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-surface px-4 sm:px-6 py-10">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <a
             href="/admin"
-            className="text-sm text-slate-400 hover:text-white transition"
+            className="flex items-center gap-1.5 text-sm font-label text-on-surface-variant hover:text-on-surface transition"
           >
-            ← Admin
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Admin
           </a>
-          <h1 className="text-2xl font-bold text-white">Users</h1>
-          <span className="text-slate-500 text-sm">({total} total)</span>
+          <h1 className="font-headline font-bold text-on-surface text-2xl">Users</h1>
+          <span className="text-xs font-label text-on-surface-variant">({total} total)</span>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3">Email</th>
-                <th className="text-left px-4 py-3">Role</th>
-                <th className="text-left px-4 py-3">Joined</th>
-                <th className="px-4 py-3"></th>
+              <tr className="bg-surface-container-low text-on-surface-variant text-xs font-label uppercase tracking-wider">
+                <th className="text-left px-5 py-4">Name</th>
+                <th className="text-left px-5 py-4">Email</th>
+                <th className="text-left px-5 py-4">Role</th>
+                <th className="text-left px-5 py-4">Joined</th>
+                <th className="px-5 py-4"></th>
               </tr>
             </thead>
             <tbody>
@@ -48,12 +49,12 @@ export default async function AdminUsersPage() {
             </tbody>
           </table>
           {rows.length === 0 && (
-            <p className="text-slate-500 text-sm text-center py-8">
+            <p className="text-on-surface-variant text-sm text-center py-8">
               No users found.
             </p>
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

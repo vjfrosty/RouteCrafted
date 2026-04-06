@@ -19,18 +19,21 @@ interface PlaceCardData {
   flagged: boolean;
 }
 
-const VERDICT_STYLES: Record<string, { label: string; classes: string }> = {
+const VERDICT_STYLES: Record<string, { label: string; icon: string; classes: string }> = {
   worth_it: {
-    label: "Worth It ✓",
-    classes: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
+    label: "Worth It",
+    icon: "check_circle",
+    classes: "bg-secondary/20 text-secondary",
   },
   skip_it: {
-    label: "Skip It ✗",
-    classes: "bg-red-500/20 text-red-300 border border-red-500/30",
+    label: "Skip It",
+    icon: "cancel",
+    classes: "bg-error/15 text-error",
   },
   depends: {
     label: "Depends",
-    classes: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+    icon: "help",
+    classes: "bg-tertiary-fixed/20 text-on-tertiary-fixed",
   },
 };
 
@@ -71,47 +74,51 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
   }
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden flex flex-col">
+    <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow flex flex-col group">
       {/* Image or placeholder */}
       {card.imageUrl ? (
-        <img
-          src={card.imageUrl}
-          alt={card.name}
-          className="w-full h-36 object-cover"
-        />
+        <div className="relative h-36 overflow-hidden">
+          <img
+            src={card.imageUrl}
+            alt={card.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        </div>
       ) : (
-        <div className="w-full h-36 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-          <span className="text-3xl">{categoryIcon(card.category)}</span>
+        <div className="w-full h-36 bg-surface-container-low flex items-center justify-center">
+          <span className="material-symbols-outlined text-[48px] text-outline" style={{ fontVariationSettings: "'FILL' 1" }}>
+            {categoryMaterialIcon(card.category)}
+          </span>
         </div>
       )}
 
-      <div className="p-4 flex flex-col gap-3 flex-1">
+      <div className="p-5 flex flex-col gap-3 flex-1">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-semibold text-white text-sm leading-snug">
+            <h3 className="font-headline font-bold text-on-surface text-base leading-snug">
               {card.name}
             </h3>
-            <p className="text-xs text-slate-400 capitalize mt-0.5">
+            <p className="text-xs font-label text-on-surface-variant capitalize mt-0.5">
               {card.category.replace(/_/g, " ")}
             </p>
           </div>
-          <span
-            className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${verdict.classes}`}
-          >
+          <span className={`shrink-0 text-xs font-label font-semibold px-3 py-1 rounded-full flex items-center gap-1 ${verdict.classes}`}>
+            <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>{verdict.icon}</span>
             {verdict.label}
           </span>
         </div>
 
         {/* Summary */}
-        <p className="text-slate-300 text-xs leading-relaxed">{card.summary}</p>
+        <p className="text-on-surface-variant text-xs leading-relaxed">{card.summary}</p>
 
         {/* Reasons */}
         {card.worthItReasons.length > 0 && (
           <ul className="space-y-1">
             {card.worthItReasons.slice(0, 3).map((r, i) => (
-              <li key={i} className="flex items-start gap-1.5 text-xs text-emerald-300">
-                <span className="mt-0.5 shrink-0">✓</span>
+              <li key={i} className="flex items-start gap-1.5 text-xs text-secondary">
+                <span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                 <span>{r}</span>
               </li>
             ))}
@@ -120,8 +127,8 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
         {card.skipItReasons.length > 0 && (
           <ul className="space-y-1">
             {card.skipItReasons.slice(0, 2).map((r, i) => (
-              <li key={i} className="flex items-start gap-1.5 text-xs text-red-300">
-                <span className="mt-0.5 shrink-0">✗</span>
+              <li key={i} className="flex items-start gap-1.5 text-xs text-error">
+                <span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
                 <span>{r}</span>
               </li>
             ))}
@@ -129,15 +136,18 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
         )}
 
         {/* Meta chips */}
-        <div className="flex flex-wrap gap-1.5 mt-auto pt-2 border-t border-slate-700/50">
-          <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full">
+        <div className="flex flex-wrap gap-1.5 mt-auto pt-3">
+          <span className="text-xs font-label bg-surface-container-low text-on-surface-variant px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <span className="material-symbols-outlined text-[11px]">payments</span>
             {COST_ICONS[card.costLevel] ?? card.costLevel}
           </span>
-          <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full">
-            ⏱ {card.timeNeeded}
+          <span className="text-xs font-label bg-surface-container-low text-on-surface-variant px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <span className="material-symbols-outlined text-[11px]">schedule</span>
+            {card.timeNeeded}
           </span>
-          <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full truncate max-w-32">
-            👤 {card.bestFor}
+          <span className="text-xs font-label bg-surface-container-low text-on-surface-variant px-2.5 py-0.5 rounded-full truncate max-w-32 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[11px]">person</span>
+            {card.bestFor}
           </span>
         </div>
 
@@ -145,9 +155,10 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
         {!showFlagForm ? (
           <button
             onClick={() => setShowFlagForm(true)}
-            className="text-xs text-slate-500 hover:text-slate-300 transition text-left"
+            className="text-xs font-label text-on-surface-variant hover:text-on-surface transition text-left flex items-center gap-1 mt-1"
           >
-            ⚑ Report inaccuracy
+            <span className="material-symbols-outlined text-[14px]">flag</span>
+            Report inaccuracy
           </button>
         ) : (
           <div className="mt-1 space-y-2">
@@ -157,13 +168,13 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
               placeholder="What's inaccurate?"
               rows={2}
               maxLength={500}
-              className="w-full text-xs bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 resize-none focus:outline-none focus:border-slate-400"
+              className="w-full text-xs bg-surface-container-low rounded-2xl px-3 py-2 text-on-surface placeholder-on-surface-variant resize-none focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <div className="flex gap-2">
               <button
                 onClick={handleFlag}
                 disabled={loading || !flagReason.trim()}
-                className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-3 py-1 rounded-lg disabled:opacity-50 transition"
+                className="text-xs font-label bg-error/10 text-error hover:bg-error/20 px-4 py-1.5 rounded-full disabled:opacity-50 transition"
               >
                 {loading ? "Reporting…" : "Report"}
               </button>
@@ -172,7 +183,7 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
                   setShowFlagForm(false);
                   setFlagReason("");
                 }}
-                className="text-xs text-slate-400 hover:text-white transition"
+                className="text-xs font-label text-on-surface-variant hover:text-on-surface transition"
               >
                 Cancel
               </button>
@@ -184,16 +195,16 @@ export function PlaceCard({ card }: { card: PlaceCardData }) {
   );
 }
 
-function categoryIcon(category: string): string {
+function categoryMaterialIcon(category: string): string {
   const map: Record<string, string> = {
-    museum: "🏛️",
-    restaurant: "🍽️",
-    park: "🌳",
-    religious_site: "⛪",
-    historic: "🏰",
-    nature: "🌿",
-    shopping: "🛍️",
-    attraction: "📍",
+    museum: "museum",
+    restaurant: "restaurant",
+    park: "park",
+    religious_site: "church",
+    historic: "castle",
+    nature: "forest",
+    shopping: "shopping_bag",
+    attraction: "attractions",
   };
-  return map[category] ?? "📍";
+  return map[category] ?? "place";
 }
