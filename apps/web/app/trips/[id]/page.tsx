@@ -9,6 +9,9 @@ import { GenerateItineraryButton } from "@/components/itinerary/GenerateItinerar
 import { DayCard } from "@/components/itinerary/DayCard";
 import { WeatherAlertBanner } from "@/components/weather/WeatherAlertBanner";
 import { RefreshWeatherButton } from "@/components/weather/RefreshWeatherButton";
+import { PlaceCard } from "@/components/places/PlaceCard";
+import { GeneratePlaceCardsButton } from "@/components/places/GeneratePlaceCardsButton";
+import { getPlaceCardsByTrip } from "@/lib/db/places";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -45,11 +48,12 @@ export default async function TripDetailPage({ params }: Props) {
   if (!trip) notFound();
 
   // Auto-check weather on every page open (idempotent, cached forecast)
-  const [days, alerts] = await Promise.all([
+  const [days, alerts, placeCards] = await Promise.all([
     getDaysByTrip(id),
     runWeatherCheck(id, session.user.id)
       .then(() => getActiveAlertsByTrip(id))
       .catch(() => getActiveAlertsByTrip(id)),
+    getPlaceCardsByTrip(id),
   ]);
 
   // Fetch item counts for each day
@@ -151,6 +155,29 @@ export default async function TripDetailPage({ params }: Props) {
                 theme={alert.theme}
               />
             ))}
+          </div>
+        )}
+
+        {/* Place Cards section */}
+        {days.length > 0 && (
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mt-4">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                Place Cards{placeCards.length > 0 ? ` — ${placeCards.length}` : ""}
+              </h2>
+              <GeneratePlaceCardsButton tripId={id} hasItinerary={days.length > 0} />
+            </div>
+            {placeCards.length === 0 ? (
+              <p className="text-slate-500 text-sm text-center py-4">
+                No place cards yet. Click ✦ Generate Place Cards to get Worth&nbsp;It&nbsp;/&nbsp;Skip&nbsp;It verdicts for your activities.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {placeCards.map((card) => (
+                  <PlaceCard key={card.id} card={card} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

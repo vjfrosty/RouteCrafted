@@ -26,3 +26,17 @@ export const rewriteDayResponseSchema = itineraryDaySchema;
 export type ItineraryItem = z.infer<typeof itineraryItemSchema>;
 export type ItineraryDay = z.infer<typeof itineraryDaySchema>;
 export type ItineraryResponse = z.infer<typeof itineraryResponseSchema>;
+
+// ─── Place Card ───────────────────────────────────────────────────────────────
+
+export const placeCardResponseSchema = z.object({
+  verdict: z.enum(["worth_it", "skip_it", "depends"]),
+  summary: z.string().min(1),
+  worthItReasons: z.array(z.string()).min(1),
+  skipItReasons: z.array(z.string()).min(1),
+  bestFor: z.string().min(1),
+  costLevel: z.enum(["free", "low", "medium", "high"]),
+  timeNeeded: z.string().min(1),
+});
+
+export type PlaceCardResponse = z.infer<typeof placeCardResponseSchema>;
