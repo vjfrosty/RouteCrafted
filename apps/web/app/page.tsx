@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { auth } from '@/auth'
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
   return (
     <div className="min-h-screen bg-surface">
       {/* ── Hero Section ── */}
@@ -39,6 +41,35 @@ export default function Home() {
                   {f}
                 </span>
               ))}
+            </div>
+
+            {/* Auth CTAs */}
+            <div className="flex items-center gap-3 mt-8">
+              {session ? (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 horizon-gradient text-white font-headline font-bold rounded-full px-7 py-3.5 shadow-card hover:opacity-90 transition"
+                >
+                  <span className="material-symbols-outlined text-[20px]">dashboard</span>
+                  My Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 horizon-gradient text-white font-headline font-bold rounded-full px-7 py-3.5 shadow-card hover:opacity-90 transition"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">login</span>
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="flex items-center gap-2 bg-surface-container-low text-on-surface font-headline font-bold rounded-full px-7 py-3.5 hover:bg-surface-container-high transition"
+                  >
+                    Create account
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -200,11 +231,11 @@ export default function Home() {
           Join thousands of travellers crafting smarter, more memorable trips.
         </p>
         <Link
-          href="/auth/signin"
+          href={session ? '/dashboard' : '/register'}
           className="inline-flex items-center gap-2 horizon-gradient text-on-primary font-headline font-bold rounded-full px-10 py-5 text-lg shadow-card hover:opacity-90 transition"
         >
           <span className="material-symbols-outlined text-[22px]">travel_explore</span>
-          Get started — it's free
+          {session ? 'Go to Dashboard' : "Get started — it's free"}
         </Link>
         <p className="mt-6 text-outline text-xs">
           Built with Next.js 15 · Expo · Drizzle ORM · Neon · Gemini 2.0 Flash
