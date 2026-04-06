@@ -2,6 +2,8 @@ import { getForecast, classifyAlert } from "@/lib/weather/open-meteo";
 import { getDaysByTrip, updateDay } from "@/lib/db/itinerary";
 import { createWeatherAlert } from "@/lib/db/weather";
 import { getTripById } from "@/lib/db/trips";
+import { getUserById } from "@/lib/db/users";
+import { sendWeatherPush } from "@/lib/notifications/expo-push";
 
 export interface WeatherCheckResult {
   newAlerts: number;
@@ -57,7 +59,22 @@ export async function runWeatherCheck(
         forecastCode: fc.weatherCode,
       });
 
-      if (created) newAlerts++;
+      if (created) {
+        newAlerts++;
+        // Fire-and-forget push notification if owner has a token
+        getUserById(trip.userId)
+          .then((owner) => {
+            if (owner?.expoPushToken) {
+              sendWeatherPush(
+                owner.expoPushToken,
+                trip.destination,
+                alert.label,
+                tripId,
+              ).catch(() => {});
+            }
+          })
+          .catch(() => {});
+      }
     }),
   );
 

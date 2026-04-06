@@ -12,6 +12,7 @@ import { RefreshWeatherButton } from "@/components/weather/RefreshWeatherButton"
 import { PlaceCard } from "@/components/places/PlaceCard";
 import { GeneratePlaceCardsButton } from "@/components/places/GeneratePlaceCardsButton";
 import { getPlaceCardsByTrip } from "@/lib/db/places";
+import { TripCoverUpload } from "@/components/trips/TripCoverUpload";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -96,6 +97,11 @@ export default async function TripDetailPage({ params }: Props) {
             </span>
             {days.length > 0 && <RefreshWeatherButton tripId={id} />}
           </div>
+        </div>
+
+        {/* Cover image upload */}
+        <div className="mb-6">
+          <TripCoverUpload tripId={id} currentUrl={trip.coverImageUrl ?? null} />
         </div>
 
         {/* Dates */}

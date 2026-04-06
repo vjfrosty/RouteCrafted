@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RouteCrafted | The Modern Cartographer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#131645",
+                        "surface-variant": "#d8e3fb",
+                        "surface": "#f9f9ff",
+                        "on-tertiary-container": "#4a3f00",
+                        "secondary-container": "#c2c5fe",
+                        "on-surface-variant": "#424754",
+                        "tertiary-container": "#c4aa01",
+                        "on-secondary-container": "#4d5081",
+                        "secondary": "#575a8c",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#004395",
+                        "surface-container-low": "#f0f3ff",
+                        "outline": "#727785",
+                        "surface-dim": "#cfdaf2",
+                        "inverse-primary": "#adc6ff",
+                        "on-background": "#111c2d",
+                        "background": "#f9f9ff",
+                        "on-surface": "#111c2d",
+                        "secondary-fixed-dim": "#bfc2fb",
+                        "on-primary-container": "#fefcff",
+                        "surface-bright": "#f9f9ff",
+                        "error": "#ba1a1a",
+                        "primary-container": "#2170e4",
+                        "surface-container-high": "#dee8ff",
+                        "on-tertiary-fixed-variant": "#524600",
+                        "tertiary": "#6d5e00",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary-fixed": "#211b00",
+                        "primary": "#0058be",
+                        "tertiary-fixed-dim": "#e2c62d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#adc6ff",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#005ac2",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#263143",
+                        "on-secondary-fixed-variant": "#3f4273",
+                        "outline-variant": "#c2c6d6",
+                        "tertiary-fixed": "#ffe24c",
+                        "surface-container": "#e7eeff",
+                        "on-primary-fixed": "#001a42",
+                        "inverse-on-surface": "#ecf1ff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#d8e3fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .horizon-gradient {
+            background: linear-gradient(135deg, #0058be 0%, #2170e4 100%);
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-2">
+<span class="text-xl font-extrabold text-slate-900 font-headline tracking-tight">RouteCrafted</span>
+</div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-blue-700 font-semibold transition-colors font-label text-sm" href="#">Explore</a>
+<a class="text-slate-500 hover:bg-slate-100 px-3 py-1 rounded-lg transition-colors font-label text-sm" href="#">Timeline</a>
+<a class="text-slate-500 hover:bg-slate-100 px-3 py-1 rounded-lg transition-colors font-label text-sm" href="#">Budget</a>
+<a class="text-slate-500 hover:bg-slate-100 px-3 py-1 rounded-lg transition-colors font-label text-sm" href="#">Saved</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">cloud_queue</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto space-y-16">
+<!-- Hero & Plan Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="lg:col-span-5 space-y-6">
+<h1 class="text-5xl md:text-7xl font-headline font-extrabold text-on-surface leading-[1.1] tracking-tight">
+                    Where to <br/> <span class="text-primary italic font-medium">next?</span>
+</h1>
+<p class="text-lg text-on-surface-variant max-w-md leading-relaxed">
+                    Craft your perfect itinerary with precision and style. No clutter, just discovery.
+                </p>
+<div class="hidden lg:block pt-4">
+<div class="bg-surface-container-low p-6 rounded-3xl space-y-4">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined">info</span>
+<span class="text-sm font-semibold font-label">Curator's Tip</span>
+</div>
+<p class="text-sm text-on-surface-variant italic">"Traveling in Tokyo? We recommend the Moderate pacing to truly soak in the Shibuya atmosphere without burnout."</p>
+</div>
+</div>
+</div>
+<!-- Trip Planner Form (The "Ledger" Card) -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-3xl p-8 shadow-[0_8px_32px_rgba(17,28,45,0.04)] space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Destination -->
+<div class="space-y-2">
+<label class="text-sm font-medium font-label text-on-surface-variant px-1">Destination</label>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-secondary">location_on</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder:text-outline-variant font-medium" placeholder="City, country, or region" type="text"/>
+</div>
+</div>
+<!-- Dates -->
+<div class="space-y-2">
+<label class="text-sm font-medium font-label text-on-surface-variant px-1">Dates</label>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-2xl focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-secondary">calendar_today</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder:text-outline-variant font-medium" placeholder="Select date range" type="text"/>
+</div>
+</div>
+<!-- Budget & Style Grid -->
+<div class="space-y-6 md:col-span-2">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Budget -->
+<div class="space-y-2">
+<label class="text-sm font-medium font-label text-on-surface-variant px-1">Budget</label>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-xs font-semibold rounded-xl bg-surface-container-high text-on-secondary-container hover:bg-secondary-container transition-colors">Low</button>
+<button class="flex-1 py-2 text-xs font-semibold rounded-xl bg-secondary-container text-on-secondary-fixed transition-colors">Medium</button>
+<button class="flex-1 py-2 text-xs font-semibold rounded-xl bg-surface-container-high text-on-secondary-container hover:bg-secondary-container transition-colors">High</button>
+</div>
+</div>
+<!-- Travel Style -->
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-medium font-label text-on-surface-variant px-1">Travel Style</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 text-xs font-semibold rounded-xl bg-surface-container-high text-on-secondary-container hover:bg-secondary-container transition-colors">Solo</button>
+<button class="px-4 py-2 text-xs font-semibold rounded-xl bg-surface-container-high text-on-secondary-container hover:bg-secondary-container transition-colors">Couple</button>
+<button class="px-4 py-2 text-xs font-semibold rounded-xl bg-secondary-container text-on-secondary-fixed transition-colors">Group</button>
+<button class="px-4 py-2 text-xs font-semibold rounded-xl bg-surface-container-high text-on-secondary-container hover:bg-secondary-container transition-colors">Family</button>
+</div>
+</div>
+</div>
+<!-- Pacing -->
+<div class="space-y-3">
+<label class="text-sm font-medium font-label text-on-surface-variant px-1">Itinerary Pacing</label>
+<div class="flex items-center justify-between gap-4 p-1 bg-surface-container-low rounded-2xl">
+<button class="flex-1 py-3 text-sm font-semibold rounded-xl text-on-surface-variant hover:bg-white/50 transition-colors">Relaxed</button>
+<button class="flex-1 py-3 text-sm font-semibold rounded-xl bg-white shadow-sm text-primary">Moderate</button>
+<button class="flex-1 py-3 text-sm font-semibold rounded-xl text-on-surface-variant hover:bg-white/50 transition-colors">Fast</button>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full horizon-gradient text-white py-5 rounded-full font-headline font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+                    Plan a New Trip
+                </button>
+</div>
+</section>
+<!-- Featured Destinations Section -->
+<section class="space-y-8">
+<div class="flex items-end justify-between">
+<div class="space-y-2">
+<span class="text-primary font-bold text-sm uppercase tracking-widest font-label">Global Curations</span>
+<h2 class="text-4xl font-headline font-bold text-on-surface">Trending Destinations</h2>
+</div>
+<button class="text-primary font-semibold flex items-center gap-1 group">
+                    View All <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<!-- Bento Grid Destinations -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[500px]">
+<!-- Tokyo -->
+<div class="md:col-span-8 group relative overflow-hidden rounded-3xl bg-surface-container-highest cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Modern neon-lit Shibuya crossing in Tokyo at dusk with crowds and skyscrapers reflecting vibrant lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzybZ6b4mhrMd9SpWLMERmzlT5WqH7Y7xnJeyJkD3EFVvm82hENnGg28vfvWDyZU6fd1wc5G0VsIz_nFbMhUBP7kP3yHLWTguhk_GtILsGDcEn_NLhW2Q-XQ5ykf-y-96HjgB1k8JY2U5ezluhkob4PE2S-JgE9fdB5jCJ-JXv33635JUB3bXnXLApM-YXy2gwMNGtWltLO8kY5bNToWEzMZiEgR_smwEmNBzzBcGmq-WqPzDk2bm3gDXJi9f_Fsb-WNvss_8YoPkh"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 space-y-2">
+<div class="flex gap-2">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-xs font-bold font-label">Trending</span>
+<span class="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold font-label">Cultural</span>
+</div>
+<h3 class="text-3xl font-headline font-bold text-white">Tokyo, Japan</h3>
+<p class="text-white/80 text-sm max-w-sm">From neon skyscrapers to ancient temples, experience the ultimate contrast.</p>
+</div>
+</div>
+<!-- Paris -->
+<div class="md:col-span-4 group relative overflow-hidden rounded-3xl bg-surface-container-highest cursor-pointer">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Eiffel Tower peeking through Parisian limestone buildings in morning sunlight with blooming flowers on balconies" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5ZKqD7Slm39Cib5rnVUyEjQbydCxt-vhusZnEXIgQtPuiD2xxRFUdfHjkc0gax_w7Ml-Y5e1WBTXSZDkyfkufAjPK-ovb_hEIEMvHt_QspS9T-iPTWnI6wcuuetQCCKOgGolerZG5PNGnU_L_t90jX6H91o2XJWY19Zuia17ypyjwnt-bELCrxz9iat57MWvkr2kpgX1rvleRd8jJtTRiaKLHHznvpnLZEU1nvtUnpTriwKbAjbS8xH5znlEuJ_5y3m6IhXNx-76R"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<h3 class="text-2xl font-headline font-bold text-white">Paris, France</h3>
+<p class="text-white/80 text-xs">The city of light and refined art.</p>
+</div>
+</div>
+<!-- New York -->
+<div class="md:col-span-4 group relative overflow-hidden rounded-3xl bg-surface-container-highest cursor-pointer h-72 md:h-auto">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Aerial view of Central Park surrounded by New York City skyscrapers during autumn with orange trees" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAXOPf06ZlH16Lg5RwrTM7Uljf6mn8CbpWtQZx7FprIaAOo8lX-czf8kp2VGghobGpaNVmyxVrQc9im3b7k8ej2d2khzp7DvIEU38cZx5qaY4FW_R41zASM8-9ltkvQnLcMlntjKpXDRmBUTMRMPUy8tbgQgDj1rhAp3K6qvvO920NtNJMVPq9_uEz6pH-3O8dwTLGpYwekZjgPbM2c-5IlSyCKPfThLRpSKU0blnPJqe7bcRlD-pqc_THTtrMH1LB0AGZ6_Tjbv6k"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<h3 class="text-2xl font-headline font-bold text-white">New York, USA</h3>
+<p class="text-white/80 text-xs">A concrete jungle where dreams are made.</p>
+</div>
+</div>
+<!-- Amalfi Coast -->
+<div class="md:col-span-8 group relative overflow-hidden rounded-3xl bg-surface-container-highest cursor-pointer h-72 md:h-auto">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Cliffside colorful buildings of Positano on the Amalfi Coast overlooking turquoise Mediterranean sea under clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2H0lrWc31aGWZxcw4jwm9Ursu96sxGjE1m5CAzX3NIdpBhB1R3_NlwV_f9e3_50K4MnsB76H7ocuVbqFMxGW_evAaHp4qLJQ9ZhHFPGloj5Ig9RGOsHdmVMaNf5WX8beW4L_dwh7d53skPx0pXrzXMSFYo7zFyvAynKSScun9WlQLjZTmu3_9vN9jDePmvSbMcZbfPeuWvmM5w7jXzPeRsnXsA7BOp_TRkaNbs_JSGY8aRSWwczVYqxdgif0o6doj91FsKxr0NlSU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<h3 class="text-3xl font-headline font-bold text-white">Amalfi Coast, Italy</h3>
+<p class="text-white/80 text-sm">Sun-drenched cliffs and turquoise waters.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Planning Features Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-surface-container-low p-10 rounded-[2.5rem] space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">map</span>
+</div>
+<h4 class="text-xl font-headline font-bold">Dynamic Mapping</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Visualize your route with real-time distance calculations and optimized pathing.</p>
+</div>
+<div class="bg-surface-container-low p-10 rounded-[2.5rem] space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-secondary-container/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">payments</span>
+</div>
+<h4 class="text-xl font-headline font-bold">Precision Budgeting</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Control your spending with per-category limits and intelligent cost estimations.</p>
+</div>
+<div class="bg-surface-container-low p-10 rounded-[2.5rem] space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-tertiary-fixed/30 flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined text-3xl">cloud_queue</span>
+</div>
+<h4 class="text-xl font-headline font-bold">Weather Sync</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Plan around the forecast. Get automatic suggestions based on your travel dates.</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 backdrop-blur-xl z-50 rounded-t-3xl shadow-[0_-8px_32px_rgba(17,28,45,0.06)]">
+<button class="tap-highlight-transparent flex flex-col items-center justify-center bg-blue-100 text-blue-800 rounded-2xl px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-['Inter'] text-[11px] font-medium">Explore</span>
+</button>
+<button class="tap-highlight-transparent flex flex-col items-center justify-center text-slate-500 px-5 py-2 active:scale-90 transition-transform hover:text-blue-500">
+<span class="material-symbols-outlined">map</span>
+<span class="font-['Inter'] text-[11px] font-medium">Timeline</span>
+</button>
+<button class="tap-highlight-transparent flex flex-col items-center justify-center text-slate-500 px-5 py-2 active:scale-90 transition-transform hover:text-blue-500">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-['Inter'] text-[11px] font-medium">Budget</span>
+</button>
+<button class="tap-highlight-transparent flex flex-col items-center justify-center text-slate-500 px-5 py-2 active:scale-90 transition-transform hover:text-blue-500">
+<span class="material-symbols-outlined">bookmark</span>
+<span class="font-['Inter'] text-[11px] font-medium">Saved</span>
+</button>
+</nav>
+<!-- Floating Action Button (FAB) - Contextual -->
+<div class="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-40">
+<button class="w-16 h-16 rounded-full horizon-gradient text-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+</body></html>

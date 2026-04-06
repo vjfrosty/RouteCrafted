@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 type Trip = {
   id: string;
@@ -12,6 +13,7 @@ type Trip = {
   budgetRange: string;
   travelStyle: string;
   pacing: string;
+  coverImageUrl?: string | null;
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -44,9 +46,24 @@ export function TripCard({
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="block bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition group"
+      className="block bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden transition group"
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
+      {/* Cover image */}
+      {trip.coverImageUrl && (
+        <div className="relative h-32 w-full">
+          <Image
+            src={trip.coverImageUrl}
+            alt={`${trip.destination} cover`}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/60" />
+        </div>
+      )}
+
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition">
             {trip.destination}
@@ -80,6 +97,7 @@ export function TripCard({
             {chipLabel(tag)}
           </span>
         ))}
+      </div>
       </div>
     </Link>
   );

@@ -109,5 +109,30 @@ export async function resolveFlag(
     .set({ status: action, resolvedBy, updatedAt: new Date() })
     .where(eq(adminFlags.id, flagId))
     .returning();
+  const flag = rows[0] ?? null;
+
+  // When dismissed, restore the card's visibility
+  if (flag && action === "dismissed") {
+    await db
+      .update(placeCards)
+      .set({ flagged: false, flagReason: null, updatedAt: new Date() })
+      .where(eq(placeCards.id, flag.placeCardId));
+  }
+
+  return flag;
+}
+
+export async function deletePlaceCard(id: string) {
+  // Null out item references first (no FK constraint in DB)
+  await db
+    .update(itineraryItems)
+    .set({ placeCardId: null })
+    .where(eq(itineraryItems.placeCardId, id));
+
+  const rows = await db
+    .delete(placeCards)
+    .where(eq(placeCards.id, id))
+    .returning();
   return rows[0] ?? null;
 }
+

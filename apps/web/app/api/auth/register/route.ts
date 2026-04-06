@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getUserByEmail } from "@/lib/db/users";
+import { sendWelcomeEmail } from "@/lib/email/resend";
 
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
@@ -40,6 +41,11 @@ export async function POST(req: Request) {
   const passwordHash = await bcrypt.hash(password, 12);
 
   await db.insert(users).values({ name, email, passwordHash });
+
+  // Fire-and-forget welcome email — don't block registration on email failure
+  sendWelcomeEmail(email, name).catch((err) =>
+    console.warn("[resend] Welcome email failed:", err)
+  );
 
   return NextResponse.json({ message: "Account created" }, { status: 201 });
 }

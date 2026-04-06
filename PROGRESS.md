@@ -1,12 +1,12 @@
 # PROGRESS.md — RouteCrafted
 
-_Last updated: 2 April 2026 — Phase 5 complete_
+_Last updated: 7 April 2026 — Phase 8 complete_
 
 ---
 
 ## Current State
 
-Phase 5 (Weather Integration) is complete and building cleanly. Open-Meteo forecasts are checked automatically on every trip page open and on dashboard load — no manual trigger required. Weather alerts surface as dismissable banners with a one-click "Rewrite Day" action, and TripCards on the dashboard show an amber badge whenever active alerts exist.
+Phase 8 (Uploads, Email & Push) is complete and building cleanly. Users can upload avatar photos and trip cover images (stored in Cloudflare R2). Welcome emails are sent on registration via Resend. Expo push notifications fire when a weather alert is detected. Build produces 45 dynamic routes.
 
 **Live URL:** https://RouteCrafted.com (Vercel)
 
@@ -21,8 +21,9 @@ Phase 5 (Weather Integration) is complete and building cleanly. Open-Meteo forec
 | **3 — Trip CRUD** | ✅ Done | 5 API routes, Mapbox form, TripCard, dashboard grid, trip detail |
 | **4 — Itinerary AI** | ✅ Done | AI generation, day rewrite, per-day page, DB prompt management, admin panel |
 | **5 — Weather** | ✅ Done | Auto-check on page open + dashboard, dismissable banners, rewrite-day integration |
-| **6 — Place Cards** | ⬜ Not started | |
-| **7 — Admin + Polish** | ⬜ Not started | |
+| **6 — Place Cards** | ✅ Done | AI Worth It/Skip It cards, OpenTripMap enrichment, flag/report flow |
+| **7 — Admin + Polish** | ✅ Done | Admin users/flags, mobile JWT API, Expo app (5 screens), profile page |
+| **8 — Uploads, Email & Push** | ✅ Done | Cloudflare R2 avatar+cover uploads, Resend welcome email, Expo push notifications |
 
 ---
 
@@ -212,13 +213,123 @@ Both `generate/route.ts` and `rewrite-day/route.ts` were updated to:
 
 ---
 
-## What's Next — Phase 6 (Place Cards)
+## Phase 6 — Place Cards ✅
 
-1. `POST /api/places/generate-cards` — call OpenTripMap (or Overpass) for POIs near each day's destination; insert into `place_cards` table
-2. `POST /api/places/flag/:id` — user flags a place as "Worth It" or "Skip It"
-3. Worth It / Skip It card UI on `/trips/[id]` — swipeable or grid cards with rating badge
-4. Admin moderation queue at `/admin/places` — review flagged cards, approve or remove
-5. `place_cards` table already migrated (Phase 2)
+### New Files
+| File | Purpose |
+|---|---|
+| `apps/web/lib/places/opentripmap.ts` | Optional OpenTripMap enrichment — `searchPoi()` returns category, coords, image URL; no-ops gracefully when `OPENTRIPMAP_KEY` is absent |
+| `apps/web/lib/db/places.ts` | DB helpers — `getPlaceCardsByTrip`, `getAllPlaceCardsByTrip`, `getPlaceCardById`, `insertPlaceCard`, `linkItemToCard`, `flagPlaceCard`, `getOpenFlags`, `resolveFlag` |
+| `apps/web/lib/ai/schemas.ts` | Added `placeCardResponseSchema` + `PlaceCardResponse` type |
+| `apps/web/app/api/places/generate-cards/route.ts` | `POST` — collects activity items without a card, calls AI per item, inserts card, links `itineraryItems.placeCardId`. Max 8 cards per call (idempotent — skips items that already have a card) |
+| `apps/web/app/api/places/cards/[tripId]/route.ts` | `GET` — list all non-flagged cards for a trip (ownership-checked) |
+| `apps/web/app/api/places/flag/[id]/route.ts` | `POST` — flag a card as inaccurate (ownership via card → trip → userId); inserts `admin_flags` row, sets `place_cards.flagged = true` |
+| `apps/web/components/places/PlaceCard.tsx` | Client card — verdict badge, worth-it/skip-it reason lists, meta chips (cost, time, best-for), inline flag form |
+| `apps/web/components/places/GeneratePlaceCardsButton.tsx` | Client button — POST → loading → `router.refresh()`; hidden when no itinerary exists |
+
+### Modified Files
+- **`trips/[id]/page.tsx`** — added `getPlaceCardsByTrip()` to `Promise.all`; Place Cards section rendered above itinerary (empty-state message when no cards; 2-col grid when cards exist)
+
+### Key Decisions
+- **Idempotent generation** — `generate-cards` only processes items with `placeCardId === null`; already-carded items are skipped
+- **Batch limit** — max 8 cards per click to control AI token spend; call again to generate remaining items
+- **OpenTripMap optional** — if `OPENTRIPMAP_KEY` is absent the API still works; `category` defaults to `'attraction'` and `imageUrl` is null
+- **No schema migrations** — `place_cards` and `admin_flags` tables were migrated in Phase 2; `itinerary_items.placeCardId` column also existed from Phase 2
+- **Flag flow** — user flags trigger an `admin_flags` row + mark card `flagged = true`; flagged cards are hidden from `getPlaceCardsByTrip` (admin-only retrieval via `getAllPlaceCardsByTrip`)
+
+---
+
+## Phase 7 — Admin + Polish ✅
+
+### Admin API Routes (6 new routes)
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/admin/users` | GET | Paginated user list (admin only) |
+| `/api/admin/users/[id]` | PATCH | Change user role (prevents self-demotion) |
+| `/api/admin/flags` | GET | List open moderation flags |
+| `/api/admin/flags/[id]` | PATCH | Resolve or dismiss a flag (dismiss also unflagged the card) |
+| `/api/admin/cards/[id]` | DELETE | Delete a place card (nulls item refs, cascades flags) |
+| `/api/admin/stats` | GET | Platform counts: users, trips, cards, alerts, open flags |
+
+### Mobile Auth + API Routes (6 new routes)
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/auth/mobile` | POST | Credentials → 30-day HS256 JWT (Expo SecureStore) |
+| `/api/mobile/trips` | GET | Bearer-auth trip list for mobile |
+| `/api/mobile/trips/[id]` | GET | Bearer-auth trip detail with days+items |
+| `/api/mobile/cards/[tripId]` | GET | Bearer-auth place cards for a trip |
+| `/api/mobile/card/[id]` | GET | Bearer-auth single place card (card detail screen) |
+| `/api/mobile/profile` | GET | Bearer-auth user profile |
+| `/api/profile` | GET + PATCH | Web session-protected profile API |
+
+### New Auth Libs
+- **`lib/auth/mobile-jwt.ts`** — `signMobileToken` / `verifyMobileToken` (jose, HS256, 30-day expiry)
+- **`lib/auth/verify-bearer.ts`** — extracts + verifies Bearer token from `Authorization` header
+
+### Admin UI
+- **`/admin`** — updated dashboard: live stats row (users/trips/cards/open-flags), clickable cards for Users and Flags sections
+- **`/admin/users`** — paginated user table with `<AdminUserRow>` client component; Make Admin / Demote buttons; prevents self-demotion
+- **`/admin/flags`** — moderation queue with `<AdminFlagRow>` client component; Dismiss Flag, Mark Resolved, Delete Card actions
+
+### Profile Page
+- **`/profile`** — server component showing avatar initials, email, role badge; `<ProfileForm>` client component to update display name via PATCH `/api/profile`
+
+### Expo Mobile App (`apps/mobile/`)
+
+| File | Purpose |
+|---|---|
+| `app.json` | Expo config — scheme `routecrafted`, expo-router plugin |
+| `tsconfig.json` | Extends expo/tsconfig.base, strict mode |
+| `lib/api.ts` | `apiFetch<T>()` — reads token from SecureStore, sets `Authorization: Bearer` header |
+| `lib/auth.tsx` | `AuthProvider` + `useAuth()` context — login/logout, token persistence |
+| `app/_layout.tsx` | Root layout — wraps in `AuthProvider`, guards with redirect to `/login` |
+| `app/(tabs)/_layout.tsx` | Tab bar: My Trips + Profile tabs |
+| `app/(tabs)/index.tsx` | **Screen 1 — My Trips** — FlatList with pull-to-refresh, taps to Trip Detail |
+| `app/(tabs)/profile.tsx` | **Screen 2 — Profile** — avatar initials, email, role, Sign Out button |
+| `app/login.tsx` | **Screen 3 — Login** — email/password form → JWT → SecureStore → tabs |
+| `app/trip/[id].tsx` | **Screen 4 — Trip Detail** — days list with weather badge, items with cost/time, taps to Card |
+| `app/card/[id].tsx` | **Screen 5 — Place Card** — verdict badge, worth-it/skip-it reasons, meta chips |
+
+### Build
+- `npx next build` — ✅ 42 routes, clean compile, 0 TypeScript errors
+
+---
+
+## Phase 8 — Uploads, Email & Push ✅
+
+### New Web Files
+| File | Purpose |
+|---|---|
+| `apps/web/lib/storage/r2.ts` | Cloudflare R2 client — `uploadFile`, `deleteFile`, `validateImageFile`, `keyFromUrl` |
+| `apps/web/lib/email/resend.ts` | Resend email client — `sendWelcomeEmail`, `sendWeatherAlertEmail` (lazy init) |
+| `apps/web/lib/notifications/expo-push.ts` | Expo Push API client — `sendPushNotification`, `sendWeatherPush` (non-fatal) |
+| `apps/web/app/api/upload/avatar/route.ts` | POST — multipart avatar upload → R2 → update `users.avatarUrl` |
+| `apps/web/app/api/upload/trip-cover/route.ts` | POST — multipart trip cover upload → R2 → update `trips.coverImageUrl` |
+| `apps/web/app/api/mobile/push-token/route.ts` | POST (Bearer) — store Expo push token on user record |
+| `apps/web/components/auth/AvatarUpload.tsx` | Client — click-to-upload avatar with live preview |
+| `apps/web/components/trips/TripCoverUpload.tsx` | Client — click-to-upload trip cover with placeholder state |
+
+### Modified Files
+| File | Change |
+|---|---|
+| `apps/web/lib/db/trips.ts` | Added `coverImageUrl` to `TripUpdate` type |
+| `apps/web/lib/weather/check.ts` | Fire-and-forget `sendWeatherPush` after creating each alert |
+| `apps/web/app/api/auth/register/route.ts` | Fire-and-forget `sendWelcomeEmail` after user insert |
+| `apps/web/app/profile/page.tsx` | Replaced static avatar initials with `<AvatarUpload>` component |
+| `apps/web/components/trips/TripCard.tsx` | Added `coverImageUrl` prop + cover image display with gradient overlay |
+| `apps/web/app/trips/[id]/page.tsx` | Added `<TripCoverUpload>` block between header and dates |
+| `apps/mobile/app/_layout.tsx` | Push registration on login — requests permissions, POSTs token to API |
+| `apps/mobile/package.json` | Fixed invalid `react@18.3.2` → `18.3.1`, `react-native@0.76.9` → `0.76.7` |
+
+### Key Decisions
+- **Lazy Resend init** — `new Resend(key)` inside getter function; prevents build-time throw when `RESEND_API_KEY` is absent
+- **R2 security** — MIME validation (jpeg/png/webp only), 5 MB max, sanitized key names (userId-based); credentials never reach the browser
+- **Non-fatal failures** — email, push, and old-file-delete failures are all caught and `console.warn`-ed; never block core user actions
+- **Old file cleanup** — both upload routes delete the previous R2 file before uploading the new one
+- **`unoptimized` images** — Next.js `<Image>` uses `unoptimized` for R2 URLs to avoid domain-allowlist requirement at build time
+
+### Build
+- `npx next build` — ✅ 45 routes, clean compile, 0 TypeScript errors
 
 ---
 
@@ -229,16 +340,20 @@ Both `generate/route.ts` and `rewrite-day/route.ts` were updated to:
 | GitHub Commits (≥15) | 0–15 | ~15+ commits |
 | Commit Days (≥3 days) | 0–15 | 2+ days |
 | Architecture | 0–5 | ✅ Turborepo monorepo |
-| Backend API | 0–7 | ✅ 17 routes live (auth × 3, trips × 4, itinerary × 3, admin × 5, weather × 2) |
+| Backend API | 0–7 | ✅ 45 routes live (auth × 4, trips × 4, itinerary × 3, admin × 11, weather × 2, places × 3, mobile × 7, upload × 2, push-token × 1, profile × 1) |
 | Database (≥4 tables) | 0–8 | ✅ 9 tables migrated |
-| Auth & Security | 0–5 | ✅ Auth.js v5, bcrypt, JWT, Zod, ownership checks, admin role guard |
-| Web Screens (≥5) | 0–10 | 7/9+ (dashboard, trips/new, trips/:id, trips/:id/day/:dayNumber, register, login, admin, admin/ai) |
-| Admin Panel | 0–10 | ✅ Live — AI prompts versioning + settings management |
-| Mobile App (≥3 screens) | 0–9 | ⬜ Not started |
+| Auth & Security | 0–5 | ✅ Auth.js v5, bcrypt, JWT, mobile HS256 JWT, Zod, ownership checks, admin role guard |
+| Web Screens (≥5) | 0–10 | ✅ 10+ (dashboard, trips/new, trips/:id, day/:dayNumber, register, login, admin, admin/ai, admin/users, admin/flags, profile) |
+| Admin Panel | 0–10 | ✅ Live — AI prompts, users management, flags moderation queue, live stats |
+| Mobile App (≥3 screens) | 0–9 | ✅ 5 screens (Trips, Profile, Login, Trip Detail, Place Card) |
 | Deployment | 0–10 | ✅ Vercel live |
 | Documentation | 0–6 | ✅ AGENTS.md, CODING_PLAN.md, PROGRESS.md |
 | Weather Alerts & Auto-check | — | ✅ Phase 5 complete (Open-Meteo, auto-check, banners, dismiss) |
-| **Estimated so far** | **~57** | |
+| Place Cards (Worth It/Skip It) | — | ✅ Phase 6 complete (AI verdicts, grid UI, flag flow) |
+| R2 File Uploads (avatar + cover) | — | ✅ Phase 8 complete (multipart upload, MIME validation, old-file cleanup) |
+| Resend Email (welcome) | — | ✅ Phase 8 complete (lazy client, fire-and-forget on register) |
+| Expo Push Notifications | — | ✅ Phase 8 complete (weather alert push, mobile token registration) |
+| **Estimated so far** | **~85** | |
 
 ---
 

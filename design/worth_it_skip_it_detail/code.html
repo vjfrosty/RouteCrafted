@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#131645",
+                        "surface-variant": "#d8e3fb",
+                        "surface": "#f9f9ff",
+                        "on-tertiary-container": "#4a3f00",
+                        "secondary-container": "#c2c5fe",
+                        "on-surface-variant": "#424754",
+                        "tertiary-container": "#c4aa01",
+                        "on-secondary-container": "#4d5081",
+                        "secondary": "#575a8c",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#004395",
+                        "surface-container-low": "#f0f3ff",
+                        "outline": "#727785",
+                        "surface-dim": "#cfdaf2",
+                        "inverse-primary": "#adc6ff",
+                        "on-background": "#111c2d",
+                        "background": "#f9f9ff",
+                        "on-surface": "#111c2d",
+                        "secondary-fixed-dim": "#bfc2fb",
+                        "on-primary-container": "#fefcff",
+                        "surface-bright": "#f9f9ff",
+                        "error": "#ba1a1a",
+                        "primary-container": "#2170e4",
+                        "surface-container-high": "#dee8ff",
+                        "on-tertiary-fixed-variant": "#524600",
+                        "tertiary": "#6d5e00",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary-fixed": "#211b00",
+                        "primary": "#0058be",
+                        "tertiary-fixed-dim": "#e2c62d",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#adc6ff",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#005ac2",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#263143",
+                        "on-secondary-fixed-variant": "#3f4273",
+                        "outline-variant": "#c2c6d6",
+                        "tertiary-fixed": "#ffe24c",
+                        "surface-container": "#e7eeff",
+                        "on-primary-fixed": "#001a42",
+                        "inverse-on-surface": "#ecf1ff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#d8e3fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-2">
+<span class="text-xl font-extrabold text-slate-900 tracking-tight font-headline">RouteCrafted</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="cloud_queue">cloud_queue</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-4 md:px-8 max-w-5xl mx-auto">
+<!-- Breadcrumb / Context -->
+<nav class="mb-6 flex items-center gap-2 text-on-surface-variant text-sm font-medium">
+<span>Tokyo, Japan</span>
+<span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary font-semibold">Senso-ji Temple</span>
+</nav>
+<!-- Main Content Canvas -->
+<div class="flex flex-col gap-8">
+<!-- Hero Section -->
+<section class="relative h-[400px] w-full rounded-3xl overflow-hidden shadow-xl">
+<img class="w-full h-full object-cover" data-alt="Stunning low angle shot of the red Kaminarimon Gate at Senso-ji Temple Tokyo with traditional lanterns and clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm_VbqBu8aR1BVUAzsj05Btk4egn1BEwxSM6f14h_LL6SbsJjPtpTK2ibn5Jznc7EO20dpFB00ALNpDQcRSanTq3HOR1Xm5QBh9GmMEOfmT-LNLfwGx2hiKBDeJlEPVQCWa9hWVHNqAl8TnKI1bapzfUJOzsbYijsdKz0GxkaS0VkPJPep6QBMiKK4JATXQetET_A73qgFhGBl10JK9VG6UdHl-Lk2dBRvNVEVoIK9RMbTFoaaYbNX0hnrTOfcAXD9J9X6hOcW_-dS"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-8 left-8 right-8">
+<h1 class="text-4xl md:text-5xl font-extrabold text-white font-headline tracking-tight mb-2">Senso-ji Temple</h1>
+<p class="text-white/90 text-lg font-medium max-w-2xl">Tokyo's oldest and most significant Buddhist temple, where tradition meets the vibrant energy of Asakusa.</p>
+</div>
+</section>
+<!-- Quick Facts Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-primary mb-2" data-icon="payments">payments</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Cost Level</span>
+<span class="font-headline font-bold text-lg text-on-surface">$ (Free Entry)</span>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-primary mb-2" data-icon="schedule">schedule</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Time Needed</span>
+<span class="font-headline font-bold text-lg text-on-surface">1.5h</span>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-primary mb-2" data-icon="star">star</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Best For</span>
+<span class="font-headline font-bold text-sm text-on-surface">Culture Lovers</span>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-primary mb-2" data-icon="camera_alt">camera_alt</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Photographers</span>
+<span class="font-headline font-bold text-sm text-on-surface">9.5/10 Rating</span>
+</div>
+</section>
+<!-- Editorial Analysis Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Worth-it Column -->
+<section class="bg-surface-container-lowest p-8 rounded-3xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-5">
+<span class="material-symbols-outlined text-9xl" data-icon="thumb_up">thumb_up</span>
+</div>
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-primary/10 p-2 rounded-xl">
+<span class="material-symbols-outlined text-primary" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<h2 class="text-2xl font-bold font-headline tracking-tight">Why it's Worth-it</h2>
+</div>
+<div class="space-y-6">
+<div>
+<h3 class="font-headline font-bold text-on-surface mb-2">The Atmospheric Entry</h3>
+<p class="text-on-surface-variant leading-relaxed">Walking through the Nakamise-dori shopping street provides a sensory overload of traditional snacks, incense, and heritage crafts that you won't find anywhere else in modern Tokyo.</p>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface mb-2">Golden Hour Magic</h3>
+<p class="text-on-surface-variant leading-relaxed">Visit at sunset when the temple is illuminated. The contrast between the bright red structures and the deep blue twilight sky is a photographer's dream.</p>
+</div>
+<div>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-sm font-medium">Free access to one of Japan's most iconic sites.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-sm font-medium">Unique "Omikuji" (fortune telling) experience.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-sm font-medium">Stunning 5-story pagoda and intricate architecture.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Skip-it Column -->
+<section class="bg-surface-container-low p-8 rounded-3xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-5">
+<span class="material-symbols-outlined text-9xl" data-icon="block">block</span>
+</div>
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-error/10 p-2 rounded-xl">
+<span class="material-symbols-outlined text-error" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<h2 class="text-2xl font-bold font-headline tracking-tight">Why you might Skip-it</h2>
+</div>
+<div class="space-y-6">
+<div>
+<h3 class="font-headline font-bold text-on-surface mb-2">Crowd Fatigue</h3>
+<p class="text-on-surface-variant leading-relaxed">During peak hours (10 AM - 4 PM), the main thoroughfare can be claustrophobic. If you prefer peaceful, zen-like garden temples, this high-energy hub might feel overwhelming.</p>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface mb-2">Accessibility Constraints</h3>
+<p class="text-on-surface-variant leading-relaxed">The historical nature of the complex means lots of gravel and stairs. While there are elevators, navigating the dense crowds in a wheelchair or with a stroller is a significant challenge.</p>
+</div>
+<div>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline" data-icon="cancel" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="text-sm font-medium">Extremely tourist-heavy and commercialized.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline" data-icon="cancel" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="text-sm font-medium">Can get extremely hot in summer with little shade.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline" data-icon="cancel" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="text-sm font-medium">Lacks the quiet contemplation of Kyoto's temples.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+</div>
+<!-- Action Area -->
+<footer class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
+<button class="w-full md:w-auto px-10 py-4 bg-gradient-to-br from-primary to-primary-container text-white font-headline font-bold rounded-full shadow-lg hover:shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                    Add to Plan
+                </button>
+<button class="w-full md:w-auto px-10 py-4 bg-surface-container-high text-on-secondary-container font-headline font-bold rounded-full hover:bg-surface-container-highest transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+                    Keep exploring
+                </button>
+</footer>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 backdrop-blur-xl z-50 rounded-t-3xl shadow-[0_-8px_32px_rgba(17,28,45,0.06)]">
+<a class="flex flex-col items-center justify-center bg-blue-100 text-blue-800 rounded-2xl px-5 py-2 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-['Inter'] text-[11px] font-medium">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-blue-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-['Inter'] text-[11px] font-medium">Timeline</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-blue-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-['Inter'] text-[11px] font-medium">Budget</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-blue-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+<span class="font-['Inter'] text-[11px] font-medium">Saved</span>
+</a>
+</nav>
+</body></html>

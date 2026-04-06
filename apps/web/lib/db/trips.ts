@@ -17,7 +17,7 @@ export type TripInsert = {
 };
 
 export type TripUpdate = Partial<
-  Omit<TripInsert, "userId"> & { status: string }
+  Omit<TripInsert, "userId"> & { status: string; coverImageUrl: string | null }
 >;
 
 export async function getTripsByUser(userId: string) {
