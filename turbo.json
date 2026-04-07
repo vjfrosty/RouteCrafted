@@ -12,9 +12,7 @@
     "lint": {
       "dependsOn": ["^lint"]
     }
-  }
-  ,
-  "pipeline": {
+    ,
     "web#build": {
       "env": [
         "NEXTAUTH_SECRET",
