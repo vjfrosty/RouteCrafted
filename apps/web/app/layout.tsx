@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { Providers } from "@/components/layout/Providers";
 
 export const metadata: Metadata = {
   title: "RouteCrafted — AI Travel Itinerary Builder",
@@ -23,9 +24,11 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-surface text-on-surface">
-        <Header />
-        <main className="pt-16 pb-20 md:pb-0">{children}</main>
-        <BottomNav />
+        <Providers>
+          <Header />
+          <main className="pt-16 pb-20 md:pb-0">{children}</main>
+          <BottomNav />
+        </Providers>
       </body>
     </html>
   );

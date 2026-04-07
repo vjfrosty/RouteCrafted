@@ -53,7 +53,7 @@ export async function Header() {
             </>
           ) : (
             <Link
-              href="/auth/signin"
+              href="/login"
               className="horizon-gradient text-on-primary px-5 py-2 rounded-full text-sm font-headline font-semibold"
             >
               Sign in

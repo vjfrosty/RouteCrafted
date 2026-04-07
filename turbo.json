@@ -17,6 +17,8 @@
       "outputs": [".next/**", "!.next/cache/**"],
       "env": [
         "DATABASE_URL",
+        "AUTH_SECRET",
+        "AUTH_URL",
         "NEXTAUTH_SECRET",
         "NEXTAUTH_URL",
         "OPENROUTER_API_KEY",
