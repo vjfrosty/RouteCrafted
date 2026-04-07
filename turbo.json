@@ -13,4 +13,15 @@
       "dependsOn": ["^lint"]
     }
   }
+  ,
+  "pipeline": {
+    "web#build": {
+      "env": [
+        "NEXTAUTH_SECRET",
+        "NEXTAUTH_URL",
+        "DATABASE_URL",
+        "OPENROUTER_MODEL"
+      ]
+    }
+  }
 }
