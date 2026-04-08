@@ -6,8 +6,26 @@ import Link from "next/link";
 
 export function RegisterForm() {
   const router = useRouter();
+  const signupDisabled = process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true";
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  if (signupDisabled) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-surface-container-low rounded-2xl p-6">
+          <p className="font-headline font-bold text-on-surface mb-2">Signups are temporarily disabled</p>
+          <p className="text-on-surface-variant text-sm">We're not accepting new accounts right now. Please check back later or contact support.</p>
+        </div>
+        <p className="text-center text-sm font-label text-on-surface-variant">
+          Already have an account?{' '}
+          <Link href="/login" className="text-primary hover:underline font-semibold">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

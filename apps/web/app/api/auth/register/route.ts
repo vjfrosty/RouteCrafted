@@ -13,6 +13,13 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Temporary disable flag — set DISABLE_SIGNUP=true in the environment to block new registrations
+  if (process.env.DISABLE_SIGNUP === "true") {
+    return NextResponse.json(
+      { error: "Signups are temporarily disabled" },
+      { status: 503 }
+    );
+  }
   let body: unknown;
   try {
     body = await req.json();
