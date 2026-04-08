@@ -21,4 +21,8 @@
     "eslint-config-next": "^16.2.2",
     "next": "^16.2.2"
   }
+  ,"overrides": {
+    "@xmldom/xmldom": "0.9.9",
+    "tar": "7.5.8"
+  }
 }
