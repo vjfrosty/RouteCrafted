@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "snyk:scan": "snyk test --all-projects",
+    "snyk:monitor": "snyk monitor --all-projects",
+    "snyk:report": "node ../../tools/snyk-report.js --input snyk-results.json --output snyk-report.md"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",

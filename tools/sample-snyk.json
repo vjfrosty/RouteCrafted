@@ -1,0 +1,15 @@
+{
+  "vulnerabilities": [
+    {
+      "id": "SNYK-JS-LODASH-1084495",
+      "packageName": "lodash",
+      "version": "4.17.19",
+      "severity": "high",
+      "from": ["apps/web", "node_modules/lodash"],
+      "url": "https://snyk.io/vuln/SNYK-JS-LODASH-1084495",
+      "identifiers": { "CVE": ["CVE-2020-8203"] },
+      "fixes": [{ "upgradeTo": "4.17.21" }]
+    }
+  ],
+  "path": "apps/web"
+}
