@@ -101,7 +101,18 @@ jobs:
         run: npm ci
       - name: Build (if required)
         run: npm run build --if-present
-      - name: Snyk test
+      - name: Snyk test (JSON capture)
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: npx snyk test --all-projects --json > snyk-results.json || true
+      - name: Generate Markdown report
+        run: node ./scripts/snyk-report.js --input snyk-results.json --output sec_reports/snyk-report.md
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-report
+          path: sec_reports/snyk-report.md
+      - name: Enforce threshold
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: npx snyk test --all-projects --severity-threshold=high
@@ -137,12 +148,27 @@ Outputs and artifacts
 - CLI output formats: plain text (default), `--json` for machine parsing, and `--sarif` or `--sarif-file-output` for SARIF (code scanning tools).
 - `snyk monitor` creates a project snapshot in Snyk that can be used for historical tracking.
 
-Example package.json scripts
+Folder layout
+
+```
+RouteCrafted/
+├── scripts/
+│   └── snyk-report.js        # JSON → Markdown report generator
+├── sec_reports/
+│   ├── README.md
+│   └── snyk-report.md        # auto-generated; commit to track history
+├── snyk-results.json         # gitignored raw JSON from snyk test
+└── .github/workflows/
+    └── snyk-scan.yml         # CI pipeline
+```
+
+Example package.json scripts (in each workspace)
 
 ```json
 "scripts": {
   "snyk:scan": "snyk test --all-projects",
   "snyk:monitor": "snyk monitor --all-projects",
+  "snyk:report": "node ../../scripts/snyk-report.js --input snyk-results.json --output ../../sec_reports/snyk-report.md",
   "snyk:code": "snyk code test"
 }
 ```
@@ -171,6 +197,7 @@ Vulnerability Response Workflow
   - Run Snyk with JSON output to capture findings:
 
   ```bash
+  # Run from repo root — output goes to sec_reports/
   npx snyk test --all-projects --json > snyk-results.json
   npx snyk code test --json > snyk-code-results.json   # optional
   ```
@@ -197,7 +224,13 @@ Vulnerability Response Workflow
   - Optionally run `npx snyk monitor` to record the new baseline.
 
 - 6) Report (Markdown)
-  - Produce a concise Markdown report documenting what was fixed, what remains open, and why:
+  - Run the report generator to produce `sec_reports/snyk-report.md`:
+
+  ```bash
+  node scripts/snyk-report.js --input snyk-results.json --output sec_reports/snyk-report.md
+  ```
+
+  - The report documents what was fixed, what remains open, and why:
 
   ```md
   # Snyk Security Report — <repo> — <date>
@@ -232,4 +265,11 @@ Vulnerability Response Workflow
 
 Automation tips
 - Capture Snyk JSON output in CI artifacts to enable automated report generation.
+- All Markdown reports land in `sec_reports/` — commit them to version-control your security history.
+- Add `snyk-results.json` to `.gitignore` (raw JSON may contain internal path info); commit only the `.md` reports in `sec_reports/`.
 - Use Snyk's GitHub integration to create fix PRs automatically when possible.
+
+Report generator location
+- Script: `scripts/snyk-report.js` (monorepo root — shared across all workspaces)
+- Output: `sec_reports/snyk-report.md` (default)
+- Run locally: `node scripts/snyk-report.js --input snyk-results.json --output sec_reports/snyk-report.md`

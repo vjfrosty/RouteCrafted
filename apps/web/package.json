@@ -9,7 +9,7 @@
     "lint": "next lint",
     "snyk:scan": "snyk test --all-projects",
     "snyk:monitor": "snyk monitor --all-projects",
-    "snyk:report": "node ../../tools/snyk-report.js --input snyk-results.json --output snyk-report.md"
+    "snyk:report": "node ../../scripts/snyk-report.js --input snyk-results.json --output ../../sec_reports/snyk-report.md"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",
@@ -19,7 +19,7 @@
     "dotenv": "^17.4.1",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.2",
-    "next-auth": "0.41.1",
+    "next-auth": "5.0.0-beta.30",
     "openai": "^6.33.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

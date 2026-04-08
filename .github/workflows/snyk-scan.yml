@@ -38,13 +38,13 @@ jobs:
 
       - name: Generate Markdown report
         run: |
-          node ./tools/snyk-report.js --input snyk-results.json --output snyk-report.md
+          node ./scripts/snyk-report.js --input snyk-results.json --output sec_reports/snyk-report.md
 
       - name: Upload Snyk report
         uses: actions/upload-artifact@v4
         with:
           name: snyk-report
-          path: snyk-report.md
+          path: sec_reports/snyk-report.md
 
       - name: Enforce severity threshold
         env:
