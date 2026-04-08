@@ -1,10 +1,7 @@
 name: Snyk Scan
 
 on:
-  push:
-    branches: [ main, master, 'release/**' ]
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch: # run manually only — disabled on push/PR
 
 jobs:
   snyk:
@@ -14,6 +11,7 @@ jobs:
       # Snyk dependency scanning doesn't require a production build — it reads
       # the lockfile. Setting this env var makes `turbo build` skip mobile safely.
       SKIP_MOBILE_BUILD: 'true'
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +30,6 @@ jobs:
       # and risks breaking the scan on unrelated build errors.
 
       - name: Snyk test (JSON capture)
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           npx snyk test --all-projects --json > snyk-results.json || true
 
@@ -54,6 +50,4 @@ jobs:
           path: sec_reports/snyk-report.md
 
       - name: Enforce severity threshold
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: npx snyk test --all-projects --severity-threshold=high
