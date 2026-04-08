@@ -5,7 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
-    "build": "expo export",
+    "build": "node -e \"if(process.env.SKIP_MOBILE_BUILD==='true'){console.log('Skipping mobile build (SKIP_MOBILE_BUILD=true)');process.exit(0)}require('child_process').execSync('expo export',{stdio:'inherit'});\"",
     "lint": "expo lint"
   },
   "dependencies": {

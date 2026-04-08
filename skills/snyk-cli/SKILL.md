@@ -87,11 +87,16 @@ Workflows
 - CI (GitHub Actions) — fail PRs on high severity
 
 ```yaml
-name: Snyk Scan
-on: [push, pull_request]
 jobs:
   snyk:
     runs-on: ubuntu-latest
+    env:
+      # react-native@0.84+ pulls metro@0.83.x which breaks `expo export` in CI
+      # (ERR_PACKAGE_PATH_NOT_EXPORTED on metro/src/lib/TerminalReporter).
+      # Snyk scanning only needs `npm ci`; no build required for npm dependency scanning.
+      # Setting SKIP_MOBILE_BUILD=true tells apps/mobile/package.json build script
+      # to exit 0 without running expo export.
+      SKIP_MOBILE_BUILD: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,8 +104,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm ci
-      - name: Build (if required)
-        run: npm run build --if-present
+      # No build step — Snyk npm scanning reads from the lockfile, not build output.
+
       - name: Snyk test (JSON capture)
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

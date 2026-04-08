@@ -9,6 +9,11 @@ on:
 jobs:
   snyk:
     runs-on: ubuntu-latest
+    env:
+      # metro@0.83.x (pulled in by react-native@0.84) breaks expo export in CI.
+      # Snyk dependency scanning doesn't require a production build — it reads
+      # the lockfile. Setting this env var makes `turbo build` skip mobile safely.
+      SKIP_MOBILE_BUILD: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,8 +26,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build (if required)
-        run: npm run build --if-present
+      # No build step needed: Snyk npm dependency scanning works entirely from
+      # the lockfile produced by `npm ci`. Running `turbo build` here would
+      # compile the mobile/web apps which is unrelated to vulnerability detection
+      # and risks breaking the scan on unrelated build errors.
 
       - name: Snyk test (JSON capture)
         env:
