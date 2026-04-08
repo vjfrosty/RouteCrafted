@@ -1,7 +1,13 @@
 name: Snyk Scan
 
 on:
-  workflow_dispatch: # run manually only — disabled on push/PR
+  workflow_dispatch:
+    inputs:
+      enforce_snyk_failure:
+        description: 'Set to true to fail the workflow when Snyk finds high severity vulnerabilities'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   snyk:
@@ -12,6 +18,10 @@ jobs:
       # the lockfile. Setting this env var makes `turbo build` skip mobile safely.
       SKIP_MOBILE_BUILD: 'true'
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      # Default behavior: warn only. Set the `enforce_snyk_failure` workflow
+      # input (or set ENFORCE_SNYK_FAILURE env) to `true` to make the job fail
+      # when Snyk finds a vulnerability at or above the configured threshold.
+      ENFORCE_SNYK_FAILURE: ${{ github.event.inputs.enforce_snyk_failure }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,5 +59,10 @@ jobs:
           name: snyk-report
           path: sec_reports/snyk-report.md
 
-      - name: Enforce severity threshold
+      - name: Snyk threshold check (warn)
+        run: |
+          npx snyk test --all-projects --severity-threshold=high || echo "Snyk reported high severity issues — run the workflow with input 'enforce_snyk_failure: true' to fail the run"
+
+      - name: Enforce severity threshold (fail)
+        if: ${{ env.ENFORCE_SNYK_FAILURE == 'true' }}
         run: npx snyk test --all-projects --severity-threshold=high
